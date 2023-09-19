@@ -1,5 +1,17 @@
 (() => {
+  var __defProp = Object.defineProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+
   // src/helpers.js
+  var helpers_exports = {};
+  __export(helpers_exports, {
+    getENFieldValue: () => getENFieldValue,
+    getENSupporterData: () => getENSupporterData,
+    setENFieldValue: () => setENFieldValue
+  });
   function getENFieldValue(field, sessionFallback = true) {
     const fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(field);
     if (fieldValue)
@@ -112,5 +124,6 @@
 
   // src/index.js
   window.ENX = ENX;
+  window.ENX.helpers = helpers_exports;
   var src_default = ENX;
 })();
