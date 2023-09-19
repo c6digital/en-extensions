@@ -1,0 +1,28 @@
+{
+  "name": "en-extensions",
+  "version": "0.0.1",
+  "description": "Adds extra functionality to Engaging Networks pages",
+  "main": "src/enx.js",
+  "scripts": {
+    "build": "esbuild src/index.js --bundle --minify --platform=browser --outfile=dist/enx.min.js && esbuild src/index.js --bundle --platform=browser --outfile=dist/enx.js",
+    "watch": "esbuild src/index.js --bundle --platform=browser --outfile=dist/enx.js --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/c6digital/en-extensions.git"
+  },
+  "keywords": [
+    "Engaging",
+    "Networks"
+  ],
+  "author": "C6 Digital",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/c6digital/en-extensions/issues"
+  },
+  "homepage": "https://github.com/c6digital/en-extensions#readme",
+  "devDependencies": {
+    "esbuild": "0.19.3",
+    "prettier": "3.0.3"
+  }
+}
