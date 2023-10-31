@@ -16,7 +16,7 @@ Then, initialise the extensions on your page template, passing in any configurat
 
 ```html
 <script>
- new ENX({
+  const enExtensions = new ENX({
      proxies: [
        {
          source: 'transaction.recurrpay', 
