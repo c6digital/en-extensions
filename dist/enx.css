@@ -1,0 +1,6 @@
+/* src/styles/spa.css */
+body:not(#en__pagebuilder) .spa:not(.spa-active) {
+  display: none;
+}
+
+/* src/styles/index.css */
