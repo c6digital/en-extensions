@@ -39,7 +39,18 @@ Then, initialise the extensions on your page template, passing in any configurat
  });
  </script>
 ```
-A brief documentation for each extension is included in comments at the top of its file in the 'src' folder.
+It is also possible to customise configuration options per page by defining a `window.ENXPageConfig` variable in a code block on your page.
+
+Options defined in `window.ENXPageConfig` will override the default options, and any options set at a template level.
+
+```html
+<script>
+  window.ENXPageConfig = {
+    beforeInit: () => { console.log('Page-specific before init function') },
+  };
+</script>
+```
+You can always view the activate config on a page by inspecting the `window.ENXConfig` variable in the console.
 
 ## Components
 

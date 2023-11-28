@@ -18,6 +18,15 @@ export default class ENX {
       ...config,
     };
 
+    if (window.hasOwnProperty("ENXPageConfig")) {
+      this.config = {
+        ...this.config,
+        ...window.ENXPageConfig,
+      };
+    }
+
+    window.ENXConfig = this.config;
+
     this.config.beforeInit();
 
     this.waitForEnDefaults().then(() => {
