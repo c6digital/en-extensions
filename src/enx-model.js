@@ -7,26 +7,31 @@ import { getENFieldValue } from "./helpers";
 
 export default class ENXModel {
   constructor() {
-    this.bind();
+    this.bindTargets = [...document.querySelectorAll("[class*='enx-model:']")];
+    if (this.shouldRun()) {
+      this.run();
+    }
   }
 
-  bind() {
-    const bindNames = [...document.querySelectorAll("[class*='enx-model:']")].map((element) => {
+  shouldRun() {
+    return this.bindTargets.length > 0;
+  }
+
+  run() {
+    const bindSources = this.bindTargets.map((element) => {
       return element.classList.value.split("enx-model:")[1].split(" ")[0];
     });
 
-    if (bindNames.length === 0) return;
+    const uniqueBindSources = [...new Set(bindSources)];
 
-    const uniqueBindNames = [...new Set(bindNames)];
-
-    uniqueBindNames.forEach((bindName) => {
-      const inputs = [...document.querySelectorAll(`[name="${bindName}"]`)];
+    uniqueBindSources.forEach((bindSource) => {
+      const inputs = [...document.querySelectorAll(`[name="${bindSource}"]`)];
 
       inputs.forEach((input) => {
-        input.addEventListener("change", (event) => {
-          const className = CSS.escape(`enx-model:${bindName}`);
+        input.addEventListener("change", () => {
+          const className = CSS.escape(`enx-model:${bindSource}`);
           const elements = [...document.querySelectorAll(`.${className}`)];
-          const value = getENFieldValue(bindName.split(".")[1]);
+          const value = getENFieldValue(bindSource.split(".")[1]);
           elements.forEach((element) => {
             element.textContent = value;
           });

@@ -29,22 +29,26 @@
   // src/enx-model.js
   var ENXModel = class {
     constructor() {
-      this.bind();
+      this.bindTargets = [...document.querySelectorAll("[class*='enx-model:']")];
+      if (this.shouldRun()) {
+        this.run();
+      }
     }
-    bind() {
-      const bindNames = [...document.querySelectorAll("[class*='enx-model:']")].map((element) => {
+    shouldRun() {
+      return this.bindTargets.length > 0;
+    }
+    run() {
+      const bindSources = this.bindTargets.map((element) => {
         return element.classList.value.split("enx-model:")[1].split(" ")[0];
       });
-      if (bindNames.length === 0)
-        return;
-      const uniqueBindNames = [...new Set(bindNames)];
-      uniqueBindNames.forEach((bindName) => {
-        const inputs = [...document.querySelectorAll(`[name="${bindName}"]`)];
+      const uniqueBindSources = [...new Set(bindSources)];
+      uniqueBindSources.forEach((bindSource) => {
+        const inputs = [...document.querySelectorAll(`[name="${bindSource}"]`)];
         inputs.forEach((input) => {
-          input.addEventListener("change", (event) => {
-            const className = CSS.escape(`enx-model:${bindName}`);
+          input.addEventListener("change", () => {
+            const className = CSS.escape(`enx-model:${bindSource}`);
             const elements = [...document.querySelectorAll(`.${className}`)];
-            const value = getENFieldValue(bindName.split(".")[1]);
+            const value = getENFieldValue(bindSource.split(".")[1]);
             elements.forEach((element) => {
               element.textContent = value;
             });
@@ -56,12 +60,17 @@
 
   // src/enx-proxy-fields.js
   var ENXProxyFields = class {
-    constructor(config = []) {
-      this.config = config;
-      this.activateProxyFields();
+    constructor(proxies = []) {
+      this.proxies = proxies;
+      if (this.shouldRun()) {
+        this.activateProxyFields();
+      }
+    }
+    shouldRun() {
+      return this.proxies.length > 0;
     }
     activateProxyFields() {
-      this.config.forEach((proxy) => {
+      this.proxies.forEach((proxy) => {
         const sourceField = proxy.source.split(".")[1];
         const targetField = proxy.target.split(".")[1];
         document.querySelectorAll(`[name="${proxy.source}"]`).forEach((input) => {

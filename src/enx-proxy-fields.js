@@ -11,13 +11,20 @@
 import { getENSupporterData, setENFieldValue } from "./helpers";
 
 export default class ENXProxyFields {
-  constructor(config = []) {
-    this.config = config;
-    this.activateProxyFields();
+  constructor(proxies = []) {
+    this.proxies = proxies;
+
+    if (this.shouldRun()) {
+      this.activateProxyFields();
+    }
+  }
+
+  shouldRun() {
+    return this.proxies.length > 0;
   }
 
   activateProxyFields() {
-    this.config.forEach((proxy) => {
+    this.proxies.forEach((proxy) => {
       const sourceField = proxy.source.split(".")[1];
       const targetField = proxy.target.split(".")[1];
 

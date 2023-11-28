@@ -46,3 +46,20 @@ A brief documentation for each extension is included in comments at the top of i
 ### ENX Cloak
 
 Add `.enx-cloak` to any element you want to be hidden until ENX has finished loading.
+
+### ENX Model
+
+One-way bind the text content of an element to the value of a form field. e.g. an element with the class name `enx-model:supporter.firstName` will be bound to the value of the input with the name `supporter.firstName`.
+
+### ENX Proxy Fields
+
+This class binds the value of a field to to another field.
+
+To use it, in your ENX constructor, pass in an array of objects with the following structure:
+
+```javascript
+proxies: [{
+  source: 'transaction.recurrpay', 
+  target: 'supporter.NOT_TAGGED_17'
+}]
+```
