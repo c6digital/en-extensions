@@ -82,3 +82,9 @@ Using a special class format, you can have elements only be visible when a form 
 The format is: `enx-show:fieldName[fieldValue]`.
 
 For example, an element with the class name `enx-show:transaction.recurrpay[Y]` will only be visible when the value of the field `transaction.recurrpay` is `Y`. If the field is a checkbox or radio button, it will be visible when the input of the group with this value is checked.
+
+### ENX Native Share
+
+Add a native share button to your page. This will open the native share dialog if supported by the device or browser. If that's not supported, it will add a "Copy" button that will copy the link to the clipboard.
+
+To add this functionality add a text block with the custom class `social-share-native-link`, containing the URL you want to share. To customise the title and description of the share, you can add further text blocks with custom classes `social-share-native-title` and `social-share-native-description` respectively. 
