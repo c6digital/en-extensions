@@ -1,8 +1,9 @@
+import * as helpers from "./helpers";
 import ENXModel from "./enx-model";
 import ENXProxyFields from "./enx-proxy-fields";
 import ENXCloak from "./enx-cloak";
 import ENXMultiStepForm from "./enx-multi-step-form";
-import * as helpers from "./helpers";
+import ENXShow from "./enx-show";
 
 export default class ENX {
   constructor(config = {}) {
@@ -30,10 +31,11 @@ export default class ENX {
     this.config.beforeInit();
 
     this.waitForEnDefaults().then(() => {
+      this.helpers = helpers;
       this.model = new ENXModel();
       this.proxyFields = new ENXProxyFields(this.config.proxies);
       this.multiStepForm = new ENXMultiStepForm();
-      this.helpers = helpers;
+      this.show = new ENXShow();
 
       // These must come last
       this.config.beforeCloakRemoval();

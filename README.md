@@ -74,3 +74,11 @@ proxies: [{
   target: 'supporter.NOT_TAGGED_17'
 }]
 ```
+
+### ENX Show
+
+Using a special class format, you can have elements only be visible when a form field has a certain value.
+
+The format is: `enx-show:fieldName[fieldValue]`.
+
+For example, an element with the class name `enx-show:transaction.recurrpay[Y]` will only be visible when the value of the field `transaction.recurrpay` is `Y`. If the field is a checkbox or radio button, it will be visible when the input of the group with this value is checked.

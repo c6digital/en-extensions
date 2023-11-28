@@ -1,1 +1,1 @@
-body:not(#en__pagebuilder) .spa:not(.spa-active){display:none}.enx-cloak{display:none!important}
+body:not(#en__pagebuilder) .spa:not(.spa-active){display:none}.enx-cloak,.enx-hidden{display:none!important}

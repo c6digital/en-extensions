@@ -7,3 +7,6 @@ body:not(#en__pagebuilder) .spa:not(.spa-active) {
 .enx-cloak {
   display: none !important;
 }
+.enx-hidden {
+  display: none !important;
+}
