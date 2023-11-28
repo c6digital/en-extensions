@@ -4,3 +4,6 @@ body:not(#en__pagebuilder) .spa:not(.spa-active) {
 }
 
 /* src/styles/index.css */
+.enx-cloak {
+  display: none !important;
+}
