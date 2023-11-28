@@ -4,6 +4,7 @@ import ENXProxyFields from "./enx-proxy-fields";
 import ENXCloak from "./enx-cloak";
 import ENXMultiStepForm from "./enx-multi-step-form";
 import ENXShow from "./enx-show";
+import ENXNativeShare from "./enx-native-share";
 
 export default class ENX {
   constructor(config = {}) {
@@ -36,6 +37,7 @@ export default class ENX {
       this.proxyFields = new ENXProxyFields(this.config.proxies);
       this.multiStepForm = new ENXMultiStepForm();
       this.show = new ENXShow();
+      this.nativeShare = new ENXNativeShare();
 
       // These must come last
       this.config.beforeCloakRemoval();

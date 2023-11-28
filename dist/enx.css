@@ -3,10 +3,39 @@ body:not(#en__pagebuilder) .spa:not(.spa-active) {
   display: none;
 }
 
+/* src/styles/native-share.css */
+body:not(#en__pagebuilder) .social-share-native-title,
+body:not(#en__pagebuilder) .social-share-native-description {
+  display: none;
+}
+.social-share-native-link {
+  display: flex;
+  align-items: stretch;
+  margin: 10px 0;
+}
+.social-share-native-link p {
+  margin: 0;
+  padding: 8px 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #cccccc;
+  text-align: center;
+  flex: 1;
+}
+.social-share-native-link button {
+  margin-left: 15px;
+  border-radius: 5px;
+  padding: 8px;
+  min-width: 75px;
+  border-width: 0;
+  background-color: #ee3f50;
+  color: white;
+}
+
 /* src/styles/index.css */
-.enx-cloak {
+body:not(#en__pagebuilder) .enx-cloak {
   display: none !important;
 }
-.enx-hidden {
+body:not(#en__pagebuilder) .enx-hidden {
   display: none !important;
 }
