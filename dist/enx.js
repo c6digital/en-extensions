@@ -10,7 +10,10 @@
   __export(helpers_exports, {
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
-    setENFieldValue: () => setENFieldValue
+    getENValidators: () => getENValidators,
+    getVisibleValidators: () => getVisibleValidators,
+    setENFieldValue: () => setENFieldValue,
+    validateVisibleFields: () => validateVisibleFields
   });
   function getENFieldValue(field, sessionFallback = true) {
     const fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(field);
@@ -24,6 +27,21 @@
   }
   function setENFieldValue(field, value) {
     window.EngagingNetworks.require._defined.enDefaults.setFieldValue(field, value);
+  }
+  function getENValidators() {
+    return window.EngagingNetworks.require._defined.enValidation.validation.validators;
+  }
+  function getVisibleValidators() {
+    return getENValidators().filter((x) => {
+      return !!document.querySelector(".enx-multistep-active .en__field--" + x.field);
+    });
+  }
+  function validateVisibleFields() {
+    const validationResults = getVisibleValidators().map((validator) => {
+      validator.hideMessage();
+      return !validator.isVisible() || validator.test();
+    });
+    return validationResults.every((result) => result);
   }
 
   // src/enx-model.js
@@ -96,8 +114,10 @@
   var ENXMultiStepForm = class {
     constructor() {
       this.currentStep = 0;
-      this.spaTabs = [];
-      this.init();
+      this.multistepTabs = [];
+      if (this.shouldRun()) {
+        this.init();
+      }
     }
     init() {
       this.resetTabs();
@@ -105,83 +125,88 @@
       this.onBackButton();
       this.onClick();
     }
+    shouldRun() {
+      return !!document.querySelector(".enx-multistep");
+    }
     resetTabs() {
       this.currentStep = 0;
-      const spaNames = [...document.querySelectorAll(".spa[class*='spa-name--']")].map(
-        (tab) => tab.className.match(/spa-name--[a-z]*/gi)[0].replace("spa-name--", "")
+      const multistepTabNames = [
+        ...document.querySelectorAll(".enx-multistep[class*='enx-multistep-name--']")
+      ].map(
+        (tab) => tab.className.match(/enx-multistep-name--[a-z]*/gi)[0].replace("enx-multistep-name--", "")
       );
-      this.spaTabs = [...new Set(spaNames)];
+      this.multistepTabs = [...new Set(multistepTabNames)];
     }
     // Via Direct URL hit
     onUrlHit() {
+      const urlParams = new URLSearchParams(location.href);
+      if (document.querySelectorAll(".enx-multistep-force-start").length && !urlParams.has("override-force-multistep")) {
+        this.changeStep(".enx-multistep-force-start");
+        history.pushState(null, "", "#");
+        this.log("URL", "Show Landing page");
+        return;
+      }
       if (window.location.hash) {
-        const urlParams = new URLSearchParams(location.href);
-        if (document.querySelectorAll(".spa-force-start").length && !urlParams.has("override-force-spa")) {
-          this.changeSpa(".spa-force-start");
-          history.pushState(null, "", "#");
-          this.log("URL", "Show Landing page");
+        const destination = location.hash.replace("#", "");
+        if (document.querySelectorAll(".enx-multistep-name--" + destination).length) {
+          this.changeStep(".enx-multistep-name--" + destination);
+          this.log("URL", 'Show "' + location.hash + '"');
+          this.setStep(destination);
         } else {
-          const destination = location.hash.replace("#", "");
-          if (document.querySelectorAll(".spa-name--" + destination).length) {
-            this.changeSpa(".spa-name--" + destination);
-            this.log("URL", 'Show "' + location.hash + '"');
-            this.setStep(destination);
+          const spaElements = document.querySelectorAll(".enx-multistep");
+          if ([...spaElements].some((element) => element.className.match(/show:/))) {
+            window.location = window.location.href.split("#")[0];
           } else {
-            const spaElements = document.querySelectorAll(".spa:not(.spa-hidden)");
-            if ([...spaElements].some((element) => element.className.match(/show:/))) {
-              window.location = window.location.href.split("#")[0];
-            } else {
-              this.changeSpa(document.querySelector(".spa:not(.spa-hidden)"));
-            }
+            this.changeStep(document.querySelector(".enx-multistep"));
           }
         }
-      } else {
-        this.changeSpa(document.querySelector(".spa:not(.spa-hidden)"));
+        return;
       }
+      this.changeStep(document.querySelector(".enx-multistep"));
     }
     onBackButton() {
       window.onpopstate = (event) => {
         if (event.state) {
-          this.changeSpa(".spa-name--" + event.state.page);
+          this.changeStep(".enx-multistep-name--" + event.state.page);
           this.log("Browser", 'Show "' + event.state.page + '"');
           this.setStep(event.state.page);
         } else {
-          const spaElements = document.querySelectorAll(".spa:not(.spa-hidden)");
+          const spaElements = document.querySelectorAll(".enx-multistep");
           if ([...spaElements].some((element) => element.className.match(/show:/))) {
             location.reload();
           } else {
-            this.changeSpa(".spa:not(.spa-hidden)");
+            this.changeStep(".enx-multistep");
             this.log("Browser", "Show Landing page");
-            this.setStep(this.spaTabs[0]);
+            this.setStep(this.multistepTabs[0]);
           }
         }
       };
     }
     onClick() {
-      const spaButtons = document.querySelectorAll("[spa-destination]");
-      spaButtons.forEach((button) => {
+      const multistepButtons = document.querySelectorAll("[enx-multistep-destination]");
+      multistepButtons.forEach((button) => {
         button.addEventListener("click", (event) => {
-          const destination = event.target.getAttribute("spa-destination");
-          const destinationIndex = this.spaTabs.indexOf(destination);
+          const destination = event.target.getAttribute("enx-multistep-destination");
+          const destinationIndex = this.multistepTabs.indexOf(destination);
           const validate = !event.target.hasAttribute("no-validate") && this.currentStep < destinationIndex;
           if (this.currentStep === destinationIndex || validate && destinationIndex > this.currentStep + 1)
             return;
-          if (validate && !this.validateVisibleFields()) {
+          if (validate && !validateVisibleFields()) {
             window.dispatchEvent(
-              new CustomEvent("onSpaError", {
-                detail: this.spaTabs[this.currentStep].className
+              new CustomEvent("onEnxMultistepError", {
+                detail: this.multistepTabs[this.currentStep].className
               })
             );
             return;
           }
-          this.changeSpa(".spa-name--" + destination);
+          this.changeStep(".enx-multistep-name--" + destination);
           this.log("App", 'Show "' + destination + '"');
           window.dispatchEvent(
-            new CustomEvent("spa:page-view", {
+            new CustomEvent("enx-multistep:page-view", {
               detail: [
                 {
                   destination,
-                  current: this.spaTabs[this.currentStep]
+                  current: this.multistepTabs[this.currentStep]
                 }
               ]
             })
@@ -193,25 +218,22 @@
         });
       });
     }
-    changeSpa(spa) {
-      this.hideAndShow(this.spaTabs[this.currentStep], spa);
+    changeStep(step) {
+      this.hideAndShow(this.multistepTabs[this.currentStep], step);
     }
     hideAndShow(hide, show) {
-      const currentTab = document.querySelector(`.spa-name--${hide}`);
+      const currentTab = document.querySelector(`.enx-multistep-name--${hide}`);
       if (currentTab) {
-        currentTab.classList.remove("spa-active");
+        currentTab.classList.remove("enx-multistep-active");
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
       const nextTabEl = show instanceof Element ? show : document.querySelector(show);
       if (nextTabEl) {
-        nextTabEl.classList.add("spa-active");
+        nextTabEl.classList.add("enx-multistep-active");
       }
     }
-    hideImportant(hide) {
-      hide.style.display = "none!important";
-    }
     setStep(destination) {
-      this.currentStep = this.spaTabs.indexOf(destination);
+      this.currentStep = this.multistepTabs.indexOf(destination);
     }
     pushState(name) {
       const state = {
@@ -230,14 +252,13 @@
     }
     moveToFirstFailedSpa() {
       const lastFailedValidation = document.querySelector(".en__field--validationFailed");
-      const failSpa = lastFailedValidation && lastFailedValidation.closest(".spa");
+      const failSpa = lastFailedValidation && lastFailedValidation.closest(".enx-multistep");
       if (!failSpa)
         return;
-      const tabValidated = Array.from(failSpa.classList).find((s) => s.includes("spa-name--"));
-      tabValidated && this.changeSpa("." + tabValidated);
-    }
-    validateVisibleFields() {
-      return true;
+      const tabValidated = Array.from(failSpa.classList).find(
+        (s) => s.includes("enx-multistep-name--")
+      );
+      tabValidated && this.changeStep("." + tabValidated);
     }
   };
 

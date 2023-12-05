@@ -1,9 +1,13 @@
+import { validateVisibleFields } from "./helpers";
+
 export default class ENXMultiStepForm {
   constructor() {
     this.currentStep = 0;
-    this.spaTabs = [];
+    this.multistepTabs = [];
 
-    this.init();
+    if (this.shouldRun()) {
+      this.init();
+    }
   }
 
   init() {
@@ -13,75 +17,86 @@ export default class ENXMultiStepForm {
     this.onClick();
   }
 
+  shouldRun() {
+    return !!document.querySelector(".enx-multistep");
+  }
+
   resetTabs() {
     this.currentStep = 0;
-    const spaNames = [...document.querySelectorAll(".spa[class*='spa-name--']")].map((tab) =>
-      tab.className.match(/spa-name--[a-z]*/gi)[0].replace("spa-name--", "")
+    const multistepTabNames = [
+      ...document.querySelectorAll(".enx-multistep[class*='enx-multistep-name--']"),
+    ].map((tab) =>
+      tab.className.match(/enx-multistep-name--[a-z]*/gi)[0].replace("enx-multistep-name--", "")
     );
-    this.spaTabs = [...new Set(spaNames)];
+    this.multistepTabs = [...new Set(multistepTabNames)];
   }
 
   // Via Direct URL hit
   onUrlHit() {
+    //Check if there is a force start
+    const urlParams = new URLSearchParams(location.href);
+    if (
+      document.querySelectorAll(".enx-multistep-force-start").length &&
+      !urlParams.has("override-force-multistep")
+    ) {
+      // Ignore URL and go to designated SPA
+      this.changeStep(".enx-multistep-force-start");
+      history.pushState(null, "", "#");
+      this.log("URL", "Show Landing page");
+      return;
+    }
+
+    //Check if there is a hash to go to a section
     if (window.location.hash) {
-      const urlParams = new URLSearchParams(location.href);
-      if (
-        document.querySelectorAll(".spa-force-start").length &&
-        !urlParams.has("override-force-spa")
-      ) {
-        // Ignore URL and go to designated SPA
-        this.changeSpa(".spa-force-start");
-        history.pushState(null, "", "#");
-        this.log("URL", "Show Landing page");
+      // Go to section in URL
+      const destination = location.hash.replace("#", "");
+      if (document.querySelectorAll(".enx-multistep-name--" + destination).length) {
+        this.changeStep(".enx-multistep-name--" + destination);
+        this.log("URL", 'Show "' + location.hash + '"');
+        this.setStep(destination);
       } else {
-        // Go to SPA in URL
-        const destination = location.hash.replace("#", "");
-        if (document.querySelectorAll(".spa-name--" + destination).length) {
-          this.changeSpa(".spa-name--" + destination);
-          this.log("URL", 'Show "' + location.hash + '"');
-          this.setStep(destination);
+        const spaElements = document.querySelectorAll(".enx-multistep");
+        if ([...spaElements].some((element) => element.className.match(/show:/))) {
+          window.location = window.location.href.split("#")[0];
         } else {
-          const spaElements = document.querySelectorAll(".spa:not(.spa-hidden)");
-          if ([...spaElements].some((element) => element.className.match(/show:/))) {
-            window.location = window.location.href.split("#")[0];
-          } else {
-            this.changeSpa(document.querySelector(".spa:not(.spa-hidden)"));
-          }
+          this.changeStep(document.querySelector(".enx-multistep"));
         }
       }
-    } else {
-      this.changeSpa(document.querySelector(".spa:not(.spa-hidden)"));
+      return;
     }
+
+    // If nothing else, show the first section.
+    this.changeStep(document.querySelector(".enx-multistep"));
   }
 
   onBackButton() {
     window.onpopstate = (event) => {
       if (event.state) {
-        // Show the SPA from State
-        this.changeSpa(".spa-name--" + event.state.page);
+        // Show the section from State
+        this.changeStep(".enx-multistep-name--" + event.state.page);
         this.log("Browser", 'Show "' + event.state.page + '"');
         this.setStep(event.state.page);
       } else {
-        const spaElements = document.querySelectorAll(".spa:not(.spa-hidden)");
+        const spaElements = document.querySelectorAll(".enx-multistep");
         if ([...spaElements].some((element) => element.className.match(/show:/))) {
           location.reload();
         } else {
           //  Show the Initial SPA
-          this.changeSpa(".spa:not(.spa-hidden)");
+          this.changeStep(".enx-multistep");
           this.log("Browser", "Show Landing page");
-          this.setStep(this.spaTabs[0]);
+          this.setStep(this.multistepTabs[0]);
         }
       }
     };
   }
 
   onClick() {
-    const spaButtons = document.querySelectorAll("[spa-destination]");
+    const multistepButtons = document.querySelectorAll("[enx-multistep-destination]");
 
-    spaButtons.forEach((button) => {
+    multistepButtons.forEach((button) => {
       button.addEventListener("click", (event) => {
-        const destination = event.target.getAttribute("spa-destination");
-        const destinationIndex = this.spaTabs.indexOf(destination);
+        const destination = event.target.getAttribute("enx-multistep-destination");
+        const destinationIndex = this.multistepTabs.indexOf(destination);
 
         const validate =
           !event.target.hasAttribute("no-validate") && this.currentStep < destinationIndex;
@@ -92,24 +107,24 @@ export default class ENXMultiStepForm {
         )
           return;
 
-        if (validate && !this.validateVisibleFields()) {
+        if (validate && !validateVisibleFields()) {
           window.dispatchEvent(
-            new CustomEvent("onSpaError", {
-              detail: this.spaTabs[this.currentStep].className,
+            new CustomEvent("onEnxMultistepError", {
+              detail: this.multistepTabs[this.currentStep].className,
             })
           );
           return;
         }
 
         /* Hide and Show */
-        this.changeSpa(".spa-name--" + destination);
+        this.changeStep(".enx-multistep-name--" + destination);
         this.log("App", 'Show "' + destination + '"');
         window.dispatchEvent(
-          new CustomEvent("spa:page-view", {
+          new CustomEvent("enx-multistep:page-view", {
             detail: [
               {
                 destination,
-                current: this.spaTabs[this.currentStep],
+                current: this.multistepTabs[this.currentStep],
               },
             ],
           })
@@ -123,28 +138,24 @@ export default class ENXMultiStepForm {
     });
   }
 
-  changeSpa(spa) {
-    this.hideAndShow(this.spaTabs[this.currentStep], spa);
+  changeStep(step) {
+    this.hideAndShow(this.multistepTabs[this.currentStep], step);
   }
 
   hideAndShow(hide, show) {
-    const currentTab = document.querySelector(`.spa-name--${hide}`);
+    const currentTab = document.querySelector(`.enx-multistep-name--${hide}`);
     if (currentTab) {
-      currentTab.classList.remove("spa-active");
+      currentTab.classList.remove("enx-multistep-active");
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
     const nextTabEl = show instanceof Element ? show : document.querySelector(show);
     if (nextTabEl) {
-      nextTabEl.classList.add("spa-active");
+      nextTabEl.classList.add("enx-multistep-active");
     }
   }
 
-  hideImportant(hide) {
-    hide.style.display = "none!important";
-  }
-
   setStep(destination) {
-    this.currentStep = this.spaTabs.indexOf(destination);
+    this.currentStep = this.multistepTabs.indexOf(destination);
   }
 
   pushState(name) {
@@ -166,14 +177,11 @@ export default class ENXMultiStepForm {
 
   moveToFirstFailedSpa() {
     const lastFailedValidation = document.querySelector(".en__field--validationFailed");
-    const failSpa = lastFailedValidation && lastFailedValidation.closest(".spa");
+    const failSpa = lastFailedValidation && lastFailedValidation.closest(".enx-multistep");
     if (!failSpa) return;
-    const tabValidated = Array.from(failSpa.classList).find((s) => s.includes("spa-name--"));
-    tabValidated && this.changeSpa("." + tabValidated);
-  }
-
-  validateVisibleFields() {
-    //TODO: implement validation, either here or as separate module. TBD.
-    return true;
+    const tabValidated = Array.from(failSpa.classList).find((s) =>
+      s.includes("enx-multistep-name--")
+    );
+    tabValidated && this.changeStep("." + tabValidated);
   }
 }

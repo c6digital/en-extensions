@@ -88,3 +88,23 @@ For example, an element with the class name `enx-show:transaction.recurrpay[Y]` 
 Add a native share button to your page. This will open the native share dialog if supported by the device or browser. If that's not supported, it will add a "Copy" button that will copy the link to the clipboard.
 
 To add this functionality add a text block with the custom class `social-share-native-link`, containing the URL you want to share. To customise the title and description of the share, you can add further text blocks with custom classes `social-share-native-title` and `social-share-native-description` respectively. 
+
+### ENX Multistep Form
+
+This component allows you to create multi-step forms in Engaging Networks. It is automatically initialised on any page with an element with the class `enx-multistep`.
+
+To get started, each section of the multi-step must have the class `enx-multistep` and `enx-multistep-name--{section-name}`. The can be added to advanced rows or used in code blocks.
+
+Multistep sections can use a combination of the following CSS classes:
+
+- `.enx-multistep`: used on all sections to indicate it's a section of a multistep form
+- `.enx-multistep-name--{name}`: used on all sections to provide URL hash
+- `.enx-multistep-force-start`: forces this section to load first, even if someone uses URL with a hash on
+
+A section can be activated using a button with attribute:
+
+- `enx-multistep-destination="{name}"`
+
+By default, the fields visible in the section are validated when clicking the button, before changing to the destination section but validation can be skipped, using a button with attribute:
+
+- `no-validate`

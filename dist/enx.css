@@ -1,5 +1,5 @@
 /* src/styles/spa.css */
-body:not(#en__pagebuilder) .spa:not(.spa-active) {
+body:not(#en__pagebuilder) .enx-multistep:not(.enx-multistep-active) {
   display: none;
 }
 
