@@ -11,7 +11,7 @@ export default class ENXTweetTarget {
     }
 
     if (document.querySelector(".ttt--mp-picture")) {
-      this.getMPPicture();
+      this.setMPPhoto();
     }
 
     if (document.querySelector(".ttt--hide-background-tab")) {
@@ -61,7 +61,7 @@ export default class ENXTweetTarget {
     sentBtn.style.display = "none";
   }
 
-  getMPPicture() {
+  setMPPhoto() {
     const mpJson = JSON.parse(document.querySelector(".en__tweetBackgroundText").textContent);
     const img = document.querySelector(".en__twitterTarget__image");
     img.src = getMPPhotoUrl(mpJson.name, mpJson.location);
