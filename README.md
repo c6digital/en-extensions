@@ -108,3 +108,11 @@ A section can be activated using a button with attribute:
 By default, the fields visible in the section are validated when clicking the button, before changing to the destination section but validation can be skipped, using a button with attribute:
 
 - `no-validate`
+
+### ENX Read More Mobile
+
+This component allows you to create a read more/less section for mobile devices. It is automatically initialised on any page with an element with the class `enx-read-more-mobile`. Add this class to any text block to make it collapse on mobile devices.
+
+You can further control how many child elements remain visible by adding a number to the class name. For example, `enx-read-more-mobile[1]` will keep 1 child element visible on mobile with the rest collapsed behind the "Read more" button.
+
+The default number of visible child elements is 2.

@@ -512,14 +512,13 @@
     }
     addReadMoreSections() {
       this.readMoreSections.forEach((section) => {
-        const paragraphs = section.querySelectorAll("p");
-        let paragraphsToShow = /enx-read-more-mobile\[([0-9])]/gi.exec(section.className);
-        paragraphsToShow = paragraphsToShow ? parseInt(paragraphsToShow[1]) : 2;
-        const paragraphsToWrap = [...paragraphs].slice(paragraphsToShow);
+        let numberElsToWrap = /enx-read-more-mobile\[([0-9])]/gi.exec(section.className);
+        numberElsToWrap = numberElsToWrap ? parseInt(numberElsToWrap[1]) : 2;
+        const els = [...section.children].slice(numberElsToWrap);
         const wrapper = document.createElement("div");
         wrapper.className = "enx-read-more-content-mobile";
-        paragraphsToWrap.forEach((paragraph) => {
-          wrapper.appendChild(paragraph);
+        els.forEach((element) => {
+          wrapper.appendChild(element);
         });
         section.appendChild(wrapper);
         wrapper.insertAdjacentHTML(
