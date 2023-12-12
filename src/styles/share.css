@@ -1,18 +1,14 @@
-/* src/styles/spa.css */
-body:not(#en__pagebuilder) .enx-multistep:not(.enx-multistep-active) {
-  display: none;
-}
-
-/* src/styles/share.css */
 body:not(#en__pagebuilder) .social-share-native-title,
 body:not(#en__pagebuilder) .social-share-native-description {
   display: none;
 }
+
 .social-share-native-link {
   display: flex;
   align-items: stretch;
   margin: 10px 0;
 }
+
 .social-share-native-link p {
   margin: 0;
   padding: 8px;
@@ -24,6 +20,7 @@ body:not(#en__pagebuilder) .social-share-native-description {
   white-space: nowrap;
   overflow: hidden;
 }
+
 .social-share-native-link button {
   margin-left: 15px;
   border-radius: 5px;
@@ -33,20 +30,25 @@ body:not(#en__pagebuilder) .social-share-native-description {
   background-color: #ee3f50;
   color: white;
 }
+
 a.share-preview-link,
 a.share-preview-link:hover {
   color: black;
   text-decoration: none;
 }
+
 .card-text {
   font-size: 1rem;
 }
+
 .en__socialShare__image {
   display: none;
 }
+
 .en__socialShares {
   flex-direction: column;
 }
+
 .en__socialShare {
   margin: 0;
   margin-bottom: 15px;
@@ -62,6 +64,7 @@ a.share-preview-link:hover {
   font-weight: normal;
   border: none !important;
 }
+
 .en__socialShare:after {
   content: "";
   width: 34px;
@@ -74,15 +77,18 @@ a.share-preview-link:hover {
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
+
 .en__socialShare:hover {
   text-decoration: none !important;
   color: #05334c !important;
 }
+
 .en__socialShare--facebook {
   -webkit-box-shadow: 0 2px 0 0 #314f8c;
   box-shadow: 0 2px 0 0 #314f8c;
   background-color: #4267b2;
 }
+
 .en__socialShare--facebook:after {
   background: url(https://c6-space.fra1.digitaloceanspaces.com/en-components/img/share-icon-fb.png);
   width: 16px;
@@ -90,40 +96,48 @@ a.share-preview-link:hover {
   right: 36px;
   top: 51%;
 }
+
 .en__socialShare--facebook:hover,
 .en__socialShare--facebook:active,
 .en__socialShare--facebook:focus {
   background-color: #7890c1 !important;
   color: initial !important;
 }
+
 .en__socialShare--twitter {
   background-color: #1da1f2;
   -webkit-box-shadow: 0 2px 0 0 #0c85d0;
   box-shadow: 0 2px 0 0 #0c85d0;
 }
+
 .en__socialShare--twitter:hover,
 .en__socialShare--twitter:active,
 .en__socialShare--twitter:focus {
   background-color: #75c4f5 !important;
   color: initial !important;
 }
+
 .en__socialShare--twitter:after {
   background: url(https://storage.c6-digital.net/en-components/img/share-icon-twitter.png);
 }
+
 .en__socialShare--whatsapp {
   background-color: #25d366;
   -webkit-box-shadow: 0 2px 0 0 #1da851;
   box-shadow: 0 2px 0 0 #1da851;
 }
+
 .en__socialShare--whatsapp:hover,
 .en__socialShare--whatsapp:active,
 .en__socialShare--whatsapp:focus {
   background-color: #87dea8 !important;
   color: initial !important;
 }
+
 .en__socialShare--whatsapp:after {
   background: url(https://storage.c6-digital.net/en-components/img/share-icon-whatsapp.png);
 }
+
 .en__socialShare--linkedin {
   background-color: #0077b5;
   -webkit-box-shadow: 0 2px 0 0 #005f92;
@@ -135,9 +149,12 @@ a.share-preview-link:hover {
   background-color: #518aa8 !important;
   color: initial !important;
 }
+
 .en__socialShare--linkedin:after {
   background: url(https://storage.c6-digital.net/en-components/img/share-icon-linkedin.png);
 }
+
+/* Share Buttons */
 .facebook-button,
 .twitter-button,
 .whatsapp-button,
@@ -156,6 +173,8 @@ a.share-preview-link:hover {
   font-weight: normal;
   border: none !important;
 }
+
+/* Share Buttons */
 .facebook-button:after,
 .twitter-button:after,
 .whatsapp-button:after,
@@ -171,6 +190,8 @@ a.share-preview-link:hover {
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
+
+/* Share Buttons */
 .facebook-button:hover,
 .twitter-button:hover,
 .whatsapp-button:hover,
@@ -178,14 +199,20 @@ a.share-preview-link:hover {
   text-decoration: none !important;
   color: black !important;
 }
+
+/* Share Buttons */
 .facebook-button {
   -webkit-box-shadow: 0 2px 0 0 #314f8c;
   box-shadow: 0 2px 0 0 #314f8c;
   background-color: #4267b2;
 }
+
+/* Share Buttons */
 .facebook-button:hover {
   background-color: #7890c1 !important;
 }
+
+/* Share Buttons */
 .facebook-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-fb.png?v=1596971649000);
   width: 16px;
@@ -193,42 +220,63 @@ a.share-preview-link:hover {
   right: 36px;
   top: 51%;
 }
+
+/* Share Buttons */
 .twitter-button {
   background-color: #1da1f2;
   -webkit-box-shadow: 0 2px 0 0 #0c85d0;
   box-shadow: 0 2px 0 0 #0c85d0;
 }
+
+/* Share Buttons */
 .twitter-button:hover {
   background-color: #75c4f5 !important;
 }
+
+/* Share Buttons */
 .twitter-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-twitter.png?v=1596971648000);
 }
+
+/* Share Buttons */
 .whatsapp-button {
   background-color: #25d366;
   -webkit-box-shadow: 0 2px 0 0 #1da851;
   box-shadow: 0 2px 0 0 #1da851;
 }
+
+/* Share Buttons */
 .whatsapp-button:hover {
   background-color: #87dea8 !important;
 }
+
+/* Share Buttons */
 .whatsapp-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-whatsapp.png?v=1596971648000);
 }
+
+/* Share Buttons */
 .email-button {
   background-color: #787878;
   -webkit-box-shadow: 0 2px 0 0 #5f5f5f;
   box-shadow: 0 2px 0 0 #5f5f5f;
 }
+
+/* Share Buttons */
 .email-button:hover {
   background-color: #b5b3b3 !important;
 }
+
+/* Share Buttons */
 .email-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-email.png?v=1596971650000);
 }
+
+/* C6 new share icons */
 a.en__socialShare.enx-share-link:after {
   content: none;
 }
+
 a.en__socialShare img.enx-share-icon {
   position: absolute;
   height: 32px;
@@ -236,30 +284,4 @@ a.en__socialShare img.enx-share-icon {
   top: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-}
-
-/* src/styles/read-more-mobile.css */
-@media screen and (max-width: 630px) {
-  div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile--open) .enx-read-more-content-mobile {
-    display: none;
-  }
-  div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile--open) .rm-icon-expanded {
-    display: none;
-  }
-  div[class*=enx-read-more-mobile].enx-read-more-mobile--open .rm-icon-normal {
-    display: none;
-  }
-}
-@media screen and (min-width: 631px) {
-  .enx-read-more-toggle-mobile {
-    display: none;
-  }
-}
-
-/* src/styles/index.css */
-body:not(#en__pagebuilder) .enx-cloak {
-  display: none !important;
-}
-body:not(#en__pagebuilder) .enx-hidden {
-  display: none !important;
 }

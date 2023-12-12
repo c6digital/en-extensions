@@ -11,8 +11,12 @@
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
     getENValidators: () => getENValidators,
+    getMPData: () => getMPData,
+    getMPPhotoUrl: () => getMPPhotoUrl,
+    getNextPageUrl: () => getNextPageUrl,
     getVisibleValidators: () => getVisibleValidators,
     setENFieldValue: () => setENFieldValue,
+    shuffleArray: () => shuffleArray,
     validateVisibleFields: () => validateVisibleFields
   });
   function getENFieldValue(field, sessionFallback = true) {
@@ -42,6 +46,37 @@
       return !validator.isVisible() || validator.test();
     });
     return validationResults.every((result) => result);
+  }
+  function shuffleArray(array) {
+    var m = array.length, t, i;
+    while (m) {
+      i = Math.floor(Math.random() * m--);
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+    return array;
+  }
+  function getNextPageUrl() {
+    return document.querySelector("form.en__component--page")?.getAttribute("action") ?? "";
+  }
+  async function getMPData(name, location2) {
+    try {
+      const data = await fetch(
+        `https://members-api.parliament.uk/api/Members/Search?skip=0&take=1&Name=${name}&Location=${location2}`
+      );
+      return await data.json();
+    } catch (err) {
+      return false;
+    }
+  }
+  async function getMPPhotoUrl(name, location2) {
+    const MP = await getMPData(name, location2);
+    if (!MP.items[0]) {
+      console.log("No MP found for", name, location2);
+      return "";
+    }
+    return MP.items[0].value.thumbnailUrl;
   }
 
   // src/enx-model.js
@@ -444,17 +479,54 @@
     }
   };
 
-  // src/enx-native-share.js
-  var ENXNativeShare = class {
+  // src/enx-share.js
+  var ENXShare = class {
+    //TODO: Add "customShareSettings" functionality
     constructor() {
-      if (this.shouldRun()) {
-        this.run();
+      this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
+      this.makeShareButtons();
+      this.setupSharePreview();
+      if (this.hasNativeShareLink()) {
+        this.addNativeShareElement();
       }
     }
-    shouldRun() {
+    makeShareButtons() {
+      const shareButtons = document.querySelectorAll(".en__socialShare");
+      if (shareButtons.length > 0) {
+        shareButtons.forEach((button) => {
+          const social = button.getAttribute("data-enshare");
+          button.removeAttribute("style");
+          button.classList.add("enx-share-link");
+          button.innerText = "Share on " + social.charAt(0).toUpperCase() + social.slice(1);
+          const img = document.createElement("img");
+          img.classList.add("enx-share-icon");
+          img.setAttribute("src", this.svgUrl + social + ".svg");
+          button.appendChild(img);
+        });
+      }
+    }
+    setupSharePreview() {
+      document.querySelector(".share-preview-image")?.setAttribute(
+        "src",
+        document.querySelector("meta[property='og:image']").getAttribute("content")
+      );
+      document.querySelector(".share-preview-title")?.setAttribute(
+        "src",
+        document.querySelector("meta[property='og:title']").getAttribute("content")
+      );
+      document.querySelector(".share-preview-description")?.setAttribute(
+        "src",
+        document.querySelector("meta[property='og:description']").getAttribute("content")
+      );
+      document.querySelector(".share-preview-link")?.setAttribute(
+        "href",
+        document.querySelector(".en__socialShare--facebook").getAttribute("href")
+      );
+    }
+    hasNativeShareLink() {
       return !!document.querySelector(".social-share-native-link");
     }
-    run() {
+    addNativeShareElement() {
       const shareEl = document.querySelector(".social-share-native-link");
       const shareTitle = document.querySelector(".social-share-native-title");
       const shareDescription = document.querySelector(".social-share-native-description");
@@ -568,6 +640,194 @@
     }
   };
 
+  // src/enx-text.js
+  var ENXText = class {
+    constructor() {
+      this.run();
+    }
+    run() {
+      const textEls = document.querySelectorAll("[class*='enx-text:']");
+      if (textEls.length > 0) {
+        textEls.forEach((el) => {
+          const className = el.classList.value.split("enx-text:")[1].split(" ")[0];
+          const sourceEl = document.querySelector(`.${className}`);
+          if (sourceEl) {
+            el.textContent = sourceEl.textContent;
+          }
+        });
+      }
+    }
+  };
+
+  // src/enx-html.js
+  var ENXHtml = class {
+    constructor() {
+      this.run();
+    }
+    run() {
+      const htmlEls = document.querySelectorAll("[class*='enx-html:']");
+      if (htmlEls.length > 0) {
+        htmlEls.forEach((el) => {
+          const className = el.classList.value.split("enx-html:")[1].split(" ")[0];
+          const sourceEl = document.querySelector(`.${className}`);
+          if (sourceEl) {
+            el.innerHTML = sourceEl.innerHTML;
+          }
+        });
+      }
+    }
+  };
+
+  // src/enx-email-target.js
+  var ENXEmailTarget = class {
+    constructor() {
+      this.addPhotoOfMP();
+      this.bindContactData();
+    }
+    addPhotoOfMP() {
+      const imageEls = document.querySelectorAll("img[data-mp-location][data-mp-name]");
+      if (imageEls.length === 0)
+        return;
+      imageEls.forEach(async (img) => {
+        img.src = getMPPhotoUrl(img.dataset.mpName, img.dataset.mpLocation);
+      });
+    }
+    //TODO: Is this necessary? Given that we have enx-text now?
+    bindContactData() {
+      const dataEls = document.querySelectorAll("[data-contact-bind]");
+      if (dataEls.length === 0)
+        return;
+      dataEls.forEach((el) => {
+        document.querySelectorAll(el.dataset.contactBind).forEach((targetEl) => {
+          targetEl.textContent = el.textContent;
+        });
+      });
+    }
+  };
+
+  // src/enx-tweet-target.js
+  var ENXTweetTarget = class {
+    constructor() {
+      this.currentTweet = 0;
+      this.tweetTextarea = document.querySelector(".en__tweet textarea");
+      this.tweets = [];
+      if (document.querySelector(".ttt--custom-tweets")) {
+        this.customTweets();
+      }
+      if (document.querySelector(".ttt--mp-picture")) {
+        this.getMPPicture();
+      }
+      if (document.querySelector(".ttt--hide-background-tab")) {
+        this.hideBackgroundTab();
+      }
+      if (document.querySelector(".ttt--hide-sent-btn")) {
+        this.hideSentBtn();
+      }
+      if (document.querySelector(".ttt--hide-target-profile")) {
+        this.hideTargetProfile();
+      }
+      if (document.querySelector(".ttt--redirect-on-tweet")) {
+        this.redirectOnTweet();
+      }
+    }
+    redirectOnTweet() {
+      const sentBtn = document.querySelector(".en__tweetButton__send > a");
+      sentBtn.addEventListener("click", () => {
+        setTimeout(() => {
+          window.location.href = getNextPageUrl();
+        }, 0);
+      });
+    }
+    hideTargetProfile() {
+      const targetProfile = document.querySelector(".en__twitterTarget");
+      targetProfile.style.display = "none";
+    }
+    hideBackgroundTab() {
+      const backgroundToggle = document.querySelector(".en__tweetBackgroundToggle");
+      backgroundToggle.style.display = "none";
+      const backgroundText = document.querySelector(".en__tweetBackgroundText");
+      backgroundText.style.display = "none";
+    }
+    hideSentBtn() {
+      const sentBtn = document.querySelector(".en__tweetButton__sent");
+      sentBtn.style.display = "none";
+    }
+    getMPPicture() {
+      const mpJson = JSON.parse(document.querySelector(".en__tweetBackgroundText").textContent);
+      const img = document.querySelector(".en__twitterTarget__image");
+      img.src = getMPPhotoUrl(mpJson.name, mpJson.location);
+    }
+    customTweets() {
+      this.getCustomTweets();
+      this.addNewTweetBtn();
+    }
+    getCustomTweets() {
+      const targetTwitterHandle = document.querySelector(".en__twitterTarget__handle").textContent;
+      const tweets = [
+        ...document.querySelectorAll(
+          ".ttt--custom-tweets .en__component--copyblock, .en__tweet textarea"
+        )
+      ].map((tweet) => tweet.textContent.replace("{twitter_handle}", targetTwitterHandle).trim());
+      this.tweets = shuffleArray(tweets);
+    }
+    addNewTweetBtn() {
+      document.head.insertAdjacentHTML(
+        "beforeend",
+        `<style>
+        .en__tweet {
+          position: relative;
+        }
+
+        .en__tweet textarea {
+          padding-top: 35px;
+        }
+
+        .new-tweet-btn {
+          background-color: transparent;
+          border: none;
+          padding: 0;
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          width: 24px;
+          height: 24px;
+          color: rgb(55 65 81);
+        }
+
+        .spin {
+          animation: spin 0.5s ease-in-out;
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
+      `
+      );
+      const tweetArea = document.querySelector(".en__tweet");
+      const newTweetBtn = `<button class="new-tweet-btn" type="button"><svg class="new-tweet-svg" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg></button>`;
+      tweetArea.insertAdjacentHTML("beforeend", newTweetBtn);
+      const newBtnEl = document.querySelector(".en__tweet > .new-tweet-btn");
+      const svg = document.querySelector(".en__tweet .new-tweet-svg");
+      newBtnEl.addEventListener("click", () => {
+        svg.classList.add("spin");
+        setTimeout(() => {
+          svg.classList.remove("spin");
+        }, 500);
+        if (this.currentTweet >= this.tweets.length) {
+          this.currentTweet = 0;
+        }
+        this.tweetTextarea.value = this.tweets[this.currentTweet];
+        this.currentTweet++;
+      });
+    }
+  };
+
   // src/enx.js
   var ENX = class {
     constructor(config = {}) {
@@ -593,13 +853,17 @@
       window.ENXConfig = this.config;
       this.config.beforeInit();
       this.waitForEnDefaults().then(() => {
-        this.helpers = helpers_exports;
-        this.model = new ENXModel();
-        this.proxyFields = new ENXProxyFields(this.config.proxies);
-        this.multiStepForm = new ENXMultiStepForm();
-        this.show = new ENXShow();
-        this.nativeShare = new ENXNativeShare();
-        this.readMoreMobile = new ENXReadMoreMobile();
+        this.enxHelpers = helpers_exports;
+        this.enxModel = new ENXModel();
+        this.enxProxyFields = new ENXProxyFields(this.config.proxies);
+        this.enxMultiStepForm = new ENXMultiStepForm();
+        this.enxShow = new ENXShow();
+        this.enxShare = new ENXShare();
+        this.enxReadMoreMobile = new ENXReadMoreMobile();
+        this.enxText = new ENXText();
+        this.enxHtml = new ENXHtml();
+        this.enxEmailTarget = new ENXEmailTarget();
+        this.enxTweetTarget = new ENXTweetTarget();
         this.config.beforeCloakRemoval();
         this.cloak = new ENXCloak();
         this.config.afterInit();

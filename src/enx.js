@@ -4,8 +4,12 @@ import ENXProxyFields from "./enx-proxy-fields";
 import ENXCloak from "./enx-cloak";
 import ENXMultiStepForm from "./enx-multi-step-form";
 import ENXShow from "./enx-show";
-import ENXNativeShare from "./enx-native-share";
+import ENXShare from "./enx-share";
 import ENXReadMoreMobile from "./enx-read-more-mobile";
+import ENXText from "./enx-text";
+import ENXHtml from "./enx-html";
+import ENXEmailTarget from "./enx-email-target";
+import ENXTweetTarget from "./enx-tweet-target";
 
 export default class ENX {
   constructor(config = {}) {
@@ -33,13 +37,17 @@ export default class ENX {
     this.config.beforeInit();
 
     this.waitForEnDefaults().then(() => {
-      this.helpers = helpers;
-      this.model = new ENXModel();
-      this.proxyFields = new ENXProxyFields(this.config.proxies);
-      this.multiStepForm = new ENXMultiStepForm();
-      this.show = new ENXShow();
-      this.nativeShare = new ENXNativeShare();
-      this.readMoreMobile = new ENXReadMoreMobile();
+      this.enxHelpers = helpers;
+      this.enxModel = new ENXModel();
+      this.enxProxyFields = new ENXProxyFields(this.config.proxies);
+      this.enxMultiStepForm = new ENXMultiStepForm();
+      this.enxShow = new ENXShow();
+      this.enxShare = new ENXShare();
+      this.enxReadMoreMobile = new ENXReadMoreMobile();
+      this.enxText = new ENXText();
+      this.enxHtml = new ENXHtml();
+      this.enxEmailTarget = new ENXEmailTarget();
+      this.enxTweetTarget = new ENXTweetTarget();
 
       // These must come last
       this.config.beforeCloakRemoval();

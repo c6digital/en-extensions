@@ -1,11 +1,11 @@
 @import "spa.css";
-@import "native-share.css";
+@import "share.css";
 @import "read-more-mobile.css";
 
 body:not(#en__pagebuilder) .enx-cloak {
-    display:none!important
+  display: none !important;
 }
 
 body:not(#en__pagebuilder) .enx-hidden {
-    display:none!important
+  display: none !important;
 }

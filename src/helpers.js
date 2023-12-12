@@ -30,3 +30,42 @@ export function validateVisibleFields() {
 
   return validationResults.every((result) => result);
 }
+
+export function shuffleArray(array) {
+  var m = array.length,
+    t,
+    i;
+
+  while (m) {
+    i = Math.floor(Math.random() * m--);
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+
+  return array;
+}
+
+export function getNextPageUrl() {
+  return document.querySelector("form.en__component--page")?.getAttribute("action") ?? "";
+}
+
+export async function getMPData(name, location) {
+  try {
+    const data = await fetch(
+      `https://members-api.parliament.uk/api/Members/Search?skip=0&take=1&Name=${name}&Location=${location}`
+    );
+    return await data.json();
+  } catch (err) {
+    return false;
+  }
+}
+
+export async function getMPPhotoUrl(name, location) {
+  const MP = await getMPData(name, location);
+  if (!MP.items[0]) {
+    console.log("No MP found for", name, location);
+    return "";
+  }
+  return MP.items[0].value.thumbnailUrl;
+}

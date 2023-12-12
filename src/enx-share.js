@@ -1,15 +1,68 @@
-export default class ENXNativeShare {
+export default class ENXShare {
+  //TODO: Add "customShareSettings" functionality
   constructor() {
-    if (this.shouldRun()) {
-      this.run();
+    this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
+
+    this.makeShareButtons();
+    this.setupSharePreview();
+
+    if (this.hasNativeShareLink()) {
+      this.addNativeShareElement();
     }
   }
 
-  shouldRun() {
+  makeShareButtons() {
+    const shareButtons = document.querySelectorAll(".en__socialShare");
+
+    if (shareButtons.length > 0) {
+      shareButtons.forEach((button) => {
+        const social = button.getAttribute("data-enshare");
+        button.removeAttribute("style");
+        button.classList.add("enx-share-link");
+        button.innerText = "Share on " + social.charAt(0).toUpperCase() + social.slice(1);
+        const img = document.createElement("img");
+        img.classList.add("enx-share-icon");
+        img.setAttribute("src", this.svgUrl + social + ".svg");
+        button.appendChild(img);
+      });
+    }
+  }
+
+  setupSharePreview() {
+    document
+      .querySelector(".share-preview-image")
+      ?.setAttribute(
+        "src",
+        document.querySelector("meta[property='og:image']").getAttribute("content")
+      );
+
+    document
+      .querySelector(".share-preview-title")
+      ?.setAttribute(
+        "src",
+        document.querySelector("meta[property='og:title']").getAttribute("content")
+      );
+
+    document
+      .querySelector(".share-preview-description")
+      ?.setAttribute(
+        "src",
+        document.querySelector("meta[property='og:description']").getAttribute("content")
+      );
+
+    document
+      .querySelector(".share-preview-link")
+      ?.setAttribute(
+        "href",
+        document.querySelector(".en__socialShare--facebook").getAttribute("href")
+      );
+  }
+
+  hasNativeShareLink() {
     return !!document.querySelector(".social-share-native-link");
   }
 
-  run() {
+  addNativeShareElement() {
     const shareEl = document.querySelector(".social-share-native-link");
     const shareTitle = document.querySelector(".social-share-native-title");
     const shareDescription = document.querySelector(".social-share-native-description");
