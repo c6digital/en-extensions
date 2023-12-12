@@ -5,6 +5,7 @@ import ENXCloak from "./enx-cloak";
 import ENXMultiStepForm from "./enx-multi-step-form";
 import ENXShow from "./enx-show";
 import ENXNativeShare from "./enx-native-share";
+import ENXReadMoreMobile from "./enx-read-more-mobile";
 
 export default class ENX {
   constructor(config = {}) {
@@ -38,6 +39,7 @@ export default class ENX {
       this.multiStepForm = new ENXMultiStepForm();
       this.show = new ENXShow();
       this.nativeShare = new ENXNativeShare();
+      this.readMoreMobile = new ENXReadMoreMobile();
 
       // These must come last
       this.config.beforeCloakRemoval();
