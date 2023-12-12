@@ -715,7 +715,7 @@
         this.customTweets();
       }
       if (document.querySelector(".ttt--mp-picture")) {
-        this.getMPPicture();
+        this.setMPPhoto();
       }
       if (document.querySelector(".ttt--hide-background-tab")) {
         this.hideBackgroundTab();
@@ -752,7 +752,7 @@
       const sentBtn = document.querySelector(".en__tweetButton__sent");
       sentBtn.style.display = "none";
     }
-    getMPPicture() {
+    setMPPhoto() {
       const mpJson = JSON.parse(document.querySelector(".en__tweetBackgroundText").textContent);
       const img = document.querySelector(".en__twitterTarget__image");
       img.src = getMPPhotoUrl(mpJson.name, mpJson.location);
