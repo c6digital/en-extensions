@@ -11,12 +11,14 @@ body:not(#en__pagebuilder) .social-share-native-description {
 
 .social-share-native-link p {
     margin: 0;
-    padding: 8px 20px;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
     color: #cccccc;
     text-align: center;
     flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .social-share-native-link button {
