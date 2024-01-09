@@ -69,3 +69,7 @@ export async function getMPPhotoUrl(name, location) {
   }
   return MP.items[0].value.thumbnailUrl;
 }
+
+export function getEnPageLocale() {
+  return window.pageJson.locale.substring(0, 2) || "en";
+}

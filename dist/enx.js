@@ -11,6 +11,7 @@
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
     getENValidators: () => getENValidators,
+    getEnPageLocale: () => getEnPageLocale,
     getMPData: () => getMPData,
     getMPPhotoUrl: () => getMPPhotoUrl,
     getNextPageUrl: () => getNextPageUrl,
@@ -77,6 +78,9 @@
       return "";
     }
     return MP.items[0].value.thumbnailUrl;
+  }
+  function getEnPageLocale() {
+    return window.pageJson.locale.substring(0, 2) || "en";
   }
 
   // src/enx-model.js
@@ -484,6 +488,13 @@
     //TODO: Add "customShareSettings" functionality
     constructor() {
       this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
+      this.shareLabels = {
+        en: "Share on",
+        fr: "Partager sur",
+        de: "Teilen auf",
+        es: "Compartir en",
+        it: "Condividi su"
+      };
       this.makeShareButtons();
       this.setupSharePreview();
       if (this.hasNativeShareLink()) {
@@ -497,7 +508,8 @@
           const social = button.getAttribute("data-enshare");
           button.removeAttribute("style");
           button.classList.add("enx-share-link");
-          button.innerText = "Share on " + social.charAt(0).toUpperCase() + social.slice(1);
+          const shareLabel = this.shareLabels[getEnPageLocale()] || this.shareLabels.en;
+          button.innerText = `${shareLabel} ${social.charAt(0).toUpperCase() + social.slice(1)}`;
           const img = document.createElement("img");
           img.classList.add("enx-share-icon");
           img.setAttribute("src", this.svgUrl + social + ".svg");

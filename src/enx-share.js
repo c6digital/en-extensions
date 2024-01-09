@@ -1,7 +1,16 @@
+import { getEnPageLocale } from "./helpers";
+
 export default class ENXShare {
   //TODO: Add "customShareSettings" functionality
   constructor() {
     this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
+    this.shareLabels = {
+      en: "Share on",
+      fr: "Partager sur",
+      de: "Teilen auf",
+      es: "Compartir en",
+      it: "Condividi su",
+    };
 
     this.makeShareButtons();
     this.setupSharePreview();
@@ -19,7 +28,8 @@ export default class ENXShare {
         const social = button.getAttribute("data-enshare");
         button.removeAttribute("style");
         button.classList.add("enx-share-link");
-        button.innerText = "Share on " + social.charAt(0).toUpperCase() + social.slice(1);
+        const shareLabel = this.shareLabels[getEnPageLocale()] || this.shareLabels.en;
+        button.innerText = `${shareLabel} ${social.charAt(0).toUpperCase() + social.slice(1)}`;
         const img = document.createElement("img");
         img.classList.add("enx-share-icon");
         img.setAttribute("src", this.svgUrl + social + ".svg");
