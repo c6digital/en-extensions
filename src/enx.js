@@ -10,6 +10,7 @@ import ENXText from "./enx-text";
 import ENXHtml from "./enx-html";
 import ENXEmailTarget from "./enx-email-target";
 import ENXTweetTarget from "./enx-tweet-target";
+import ENXDonate from "./enx-donate";
 
 export default class ENX {
   constructor(config = {}) {
@@ -48,6 +49,7 @@ export default class ENX {
       this.enxHtml = new ENXHtml();
       this.enxEmailTarget = new ENXEmailTarget();
       this.enxTweetTarget = new ENXTweetTarget();
+      this.enxDonate = new ENXDonate();
 
       // These must come last
       this.config.beforeCloakRemoval();

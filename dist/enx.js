@@ -8,6 +8,9 @@
   // src/helpers.js
   var helpers_exports = {};
   __export(helpers_exports, {
+    displayDonationAmt: () => displayDonationAmt,
+    getCurrency: () => getCurrency,
+    getCurrencySymbol: () => getCurrencySymbol,
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
     getENValidators: () => getENValidators,
@@ -16,6 +19,9 @@
     getMPPhotoUrl: () => getMPPhotoUrl,
     getNextPageUrl: () => getNextPageUrl,
     getVisibleValidators: () => getVisibleValidators,
+    giftAidCalculation: () => giftAidCalculation,
+    saveDonationAmtToStorage: () => saveDonationAmtToStorage,
+    saveFieldValueToSessionStorage: () => saveFieldValueToSessionStorage,
     setENFieldValue: () => setENFieldValue,
     shuffleArray: () => shuffleArray,
     validateVisibleFields: () => validateVisibleFields
@@ -26,6 +32,7 @@
       return fieldValue;
     if (sessionFallback)
       return getENSupporterData(field);
+    return null;
   }
   function getENSupporterData(field) {
     return window.EngagingNetworks.require._defined.enDefaults.getSupporterData(field);
@@ -81,6 +88,43 @@
   }
   function getEnPageLocale() {
     return window.pageJson.locale.substring(0, 2) || "en";
+  }
+  function getCurrency() {
+    return getENFieldValue("paycurrency") || getENFieldValue("currency") || "USD";
+  }
+  function getCurrencySymbol() {
+    return 1 .toLocaleString(getEnPageLocale(), {
+      style: "currency",
+      currency: getCurrency()
+    }).replace("1.00", "");
+  }
+  function saveFieldValueToSessionStorage(field, key = null) {
+    if (!key)
+      key = field;
+    sessionStorage.setItem(key, getENFieldValue(field));
+  }
+  function saveDonationAmtToStorage() {
+    saveFieldValueToSessionStorage("donationAmt");
+  }
+  function displayDonationAmt() {
+    const donationAmtDisplay = document.querySelector(".display-donation-amt");
+    const donationAmt = sessionStorage.getItem("donationAmt");
+    if (donationAmtDisplay && donationAmt) {
+      donationAmtDisplay.textContent = donationAmt;
+    }
+  }
+  function giftAidCalculation() {
+    const giftAidCalculation2 = document.querySelector(".gift-aid-calculation");
+    const donationAmt = sessionStorage.getItem("donationAmt");
+    if (giftAidCalculation2 && donationAmt) {
+      let giftAidAmt = donationAmt / 4 * 5;
+      if (giftAidAmt % 1 !== 0) {
+        giftAidAmt = giftAidAmt.toFixed(2);
+      }
+      giftAidCalculation2.querySelector(".donation-amt").textContent = donationAmt;
+      giftAidCalculation2.querySelector(".gift-aid-amt").textContent = giftAidAmt.toString();
+      giftAidCalculation2.style.display = "block";
+    }
   }
 
   // src/enx-model.js
@@ -840,6 +884,34 @@
     }
   };
 
+  // src/enx-donate.js
+  var ENXDonate = class {
+    constructor() {
+      this.removeEmptyDecimalFromTotalAmountSpans();
+      this.addCurrencyToDonationOther();
+    }
+    removeEmptyDecimalFromTotalAmountSpans() {
+      const amountTotalSpan = document.querySelector('span[data-token="amount-total"]');
+      if (!amountTotalSpan)
+        return;
+      const updateAmountTotalSpans = () => {
+        let decSeparator = ".";
+        if (window.pageJson && window.pageJson.locale) {
+          decSeparator = 1.1.toLocaleString(getEnPageLocale()).substring(1, 2);
+        }
+        document.querySelectorAll('span[data-token="amount-total"]').forEach((amountTotalSpan2) => {
+          amountTotalSpan2.textContent = amountTotalSpan2.textContent.replace(decSeparator + "00", "");
+        });
+      };
+      updateAmountTotalSpans();
+      const observer = new MutationObserver(updateAmountTotalSpans);
+      observer.observe(amountTotalSpan, { subtree: true, childList: true });
+    }
+    addCurrencyToDonationOther() {
+      document.querySelector(".en__field--donationAmt .en__field__item--other")?.classList.add("amount-currency--" + getCurrency());
+    }
+  };
+
   // src/enx.js
   var ENX = class {
     constructor(config = {}) {
@@ -876,6 +948,7 @@
         this.enxHtml = new ENXHtml();
         this.enxEmailTarget = new ENXEmailTarget();
         this.enxTweetTarget = new ENXTweetTarget();
+        this.enxDonate = new ENXDonate();
         this.config.beforeCloakRemoval();
         this.cloak = new ENXCloak();
         this.config.afterInit();

@@ -2,6 +2,7 @@ export function getENFieldValue(field, sessionFallback = true) {
   const fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(field);
   if (fieldValue) return fieldValue;
   if (sessionFallback) return getENSupporterData(field);
+  return null;
 }
 
 export function getENSupporterData(field) {
@@ -72,4 +73,52 @@ export async function getMPPhotoUrl(name, location) {
 
 export function getEnPageLocale() {
   return window.pageJson.locale.substring(0, 2) || "en";
+}
+
+export function getCurrency() {
+  return getENFieldValue("paycurrency") || getENFieldValue("currency") || "USD";
+}
+
+export function getCurrencySymbol() {
+  return (1.0)
+    .toLocaleString(getEnPageLocale(), {
+      style: "currency",
+      currency: getCurrency(),
+    })
+    .replace("1.00", "");
+}
+
+export function saveFieldValueToSessionStorage(field, key = null) {
+  if (!key) key = field;
+  sessionStorage.setItem(key, getENFieldValue(field));
+}
+
+export function saveDonationAmtToStorage() {
+  saveFieldValueToSessionStorage("donationAmt");
+}
+
+export function displayDonationAmt() {
+  const donationAmtDisplay = document.querySelector(".display-donation-amt");
+  const donationAmt = sessionStorage.getItem("donationAmt");
+
+  if (donationAmtDisplay && donationAmt) {
+    donationAmtDisplay.textContent = donationAmt;
+  }
+}
+
+export function giftAidCalculation() {
+  const giftAidCalculation = document.querySelector(".gift-aid-calculation");
+  const donationAmt = sessionStorage.getItem("donationAmt");
+
+  if (giftAidCalculation && donationAmt) {
+    let giftAidAmt = (donationAmt / 4) * 5;
+
+    if (giftAidAmt % 1 !== 0) {
+      giftAidAmt = giftAidAmt.toFixed(2);
+    }
+
+    giftAidCalculation.querySelector(".donation-amt").textContent = donationAmt;
+    giftAidCalculation.querySelector(".gift-aid-amt").textContent = giftAidAmt.toString();
+    giftAidCalculation.style.display = "block";
+  }
 }
