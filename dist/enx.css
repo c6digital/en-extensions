@@ -1,9 +1,9 @@
-/* src/styles/spa.css */
+/* src/styles/enx-multi-step-form.css */
 body:not(#en__pagebuilder) .enx-multistep:not(.enx-multistep-active) {
   display: none;
 }
 
-/* src/styles/share.css */
+/* src/styles/enx-share.css */
 body:not(#en__pagebuilder) .social-share-native-title,
 body:not(#en__pagebuilder) .social-share-native-description {
   display: none;
@@ -238,7 +238,7 @@ a.en__socialShare img.enx-share-icon {
   transform: translate(-50%, -50%);
 }
 
-/* src/styles/read-more-mobile.css */
+/* src/styles/enx-read-more-mobile.css */
 @media screen and (max-width: 630px) {
   div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile--open) .enx-read-more-content-mobile {
     display: none;
