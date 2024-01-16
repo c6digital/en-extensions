@@ -11,11 +11,18 @@ import ENXHtml from "./enx-html";
 import ENXEmailTarget from "./enx-email-target";
 import ENXTweetTarget from "./enx-tweet-target";
 import ENXDonate from "./enx-donate";
+import ENXLiveValidation from "./enx-live-validation";
 
 export default class ENX {
   constructor(config = {}) {
     const defaultConfig = {
+      debug: new URLSearchParams(window.location.search).has("debug"),
       proxies: [],
+      liveValidation: {
+        enabled: true,
+        sortCodeField: "supporter.bankRoutingNumber",
+        accountNumberField: "supporter.bankAccountNumber",
+      },
       beforeInit: () => {},
       beforeCloakRemoval: () => {},
       afterInit: () => {},
@@ -50,6 +57,7 @@ export default class ENX {
       this.enxEmailTarget = new ENXEmailTarget();
       this.enxTweetTarget = new ENXTweetTarget();
       this.enxDonate = new ENXDonate();
+      this.enxLiveValidation = new ENXLiveValidation(this.config.liveValidation);
 
       // These must come last
       this.config.beforeCloakRemoval();

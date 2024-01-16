@@ -25,5 +25,8 @@
   "devDependencies": {
     "esbuild": "0.19.3",
     "prettier": "3.0.3"
+  },
+  "dependencies": {
+    "cleave-zen": "^0.0.17"
   }
 }

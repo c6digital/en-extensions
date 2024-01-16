@@ -122,3 +122,12 @@ export function giftAidCalculation() {
     giftAidCalculation.style.display = "block";
   }
 }
+
+export function log(message) {
+  if (window.ENXConfig.debug) {
+    console.log(
+      `%c[ENX]: ${message}`,
+      "color: #241C15; background-color: #FF3EBF; padding: 4px; font-weight: 400;"
+    );
+  }
+}

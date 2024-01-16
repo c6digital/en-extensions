@@ -20,6 +20,7 @@
     getNextPageUrl: () => getNextPageUrl,
     getVisibleValidators: () => getVisibleValidators,
     giftAidCalculation: () => giftAidCalculation,
+    log: () => log,
     saveDonationAmtToStorage: () => saveDonationAmtToStorage,
     saveFieldValueToSessionStorage: () => saveFieldValueToSessionStorage,
     setENFieldValue: () => setENFieldValue,
@@ -44,8 +45,8 @@
     return window.EngagingNetworks.require._defined.enValidation.validation.validators;
   }
   function getVisibleValidators() {
-    return getENValidators().filter((x) => {
-      return !!document.querySelector(".enx-multistep-active .en__field--" + x.field);
+    return getENValidators().filter((x2) => {
+      return !!document.querySelector(".enx-multistep-active .en__field--" + x2.field);
     });
   }
   function validateVisibleFields() {
@@ -56,12 +57,12 @@
     return validationResults.every((result) => result);
   }
   function shuffleArray(array) {
-    var m = array.length, t, i;
-    while (m) {
-      i = Math.floor(Math.random() * m--);
-      t = array[m];
-      array[m] = array[i];
-      array[i] = t;
+    var m2 = array.length, t2, i2;
+    while (m2) {
+      i2 = Math.floor(Math.random() * m2--);
+      t2 = array[m2];
+      array[m2] = array[i2];
+      array[i2] = t2;
     }
     return array;
   }
@@ -124,6 +125,14 @@
       giftAidCalculation2.querySelector(".donation-amt").textContent = donationAmt;
       giftAidCalculation2.querySelector(".gift-aid-amt").textContent = giftAidAmt.toString();
       giftAidCalculation2.style.display = "block";
+    }
+  }
+  function log(message) {
+    if (window.ENXConfig.debug) {
+      console.log(
+        `%c[ENX]: ${message}`,
+        "color: #241C15; background-color: #FF3EBF; padding: 4px; font-weight: 400;"
+      );
     }
   }
 
@@ -339,7 +348,7 @@
       if (!failSpa)
         return;
       const tabValidated = Array.from(failSpa.classList).find(
-        (s) => s.includes("enx-multistep-name--")
+        (s2) => s2.includes("enx-multistep-name--")
       );
       tabValidated && this.changeStep("." + tabValidated);
     }
@@ -375,8 +384,8 @@
           }
         });
       });
-      document.querySelector(".en__component--page")?.addEventListener("input", (e) => {
-        const target = e.target;
+      document.querySelector(".en__component--page")?.addEventListener("input", (e2) => {
+        const target = e2.target;
         if (target.matches("input, select, textarea")) {
           this.checkShowHide(target.name, target.value);
         }
@@ -912,11 +921,235 @@
     }
   };
 
+  // node_modules/cleave-zen/dist/cleave-zen.module.js
+  var e;
+  var r;
+  var t;
+  var i = function(e2) {
+    return e2.replace(/[^\d]/g, "");
+  };
+  var n = function(e2) {
+    return e2.reduce(function(e3, r2) {
+      return e3 + r2;
+    }, 0);
+  };
+  var a = function(e2, r2) {
+    return e2.slice(0, r2);
+  };
+  var l = function(e2) {
+    var r2 = e2.value;
+    return e2.delimiters.forEach(function(e3) {
+      e3.split("").forEach(function(e4) {
+        r2 = r2.replace(new RegExp(e4.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1"), "g"), "");
+      });
+    }), r2;
+  };
+  var u = function(e2) {
+    var r2 = e2.blocks, t2 = e2.delimiter, i2 = void 0 === t2 ? "" : t2, n2 = e2.delimiters, a2 = void 0 === n2 ? [] : n2, l2 = e2.delimiterLazyShow, u2 = void 0 !== l2 && l2, c2 = "", s2 = e2.value, o = "";
+    return r2.forEach(function(e3, t3) {
+      if (s2.length > 0) {
+        var n3, l3 = s2.slice(0, e3), d2 = s2.slice(e3);
+        o = a2.length > 0 ? null != (n3 = a2[u2 ? t3 - 1 : t3]) ? n3 : o : i2, u2 ? (t3 > 0 && (c2 += o), c2 += l3) : (c2 += l3, l3.length === e3 && t3 < r2.length - 1 && (c2 += o)), s2 = d2;
+      }
+    }), c2;
+  };
+  var c = function(e2) {
+    var r2 = e2.delimiter, t2 = e2.delimiters, i2 = e2.prefix, n2 = void 0 === i2 ? "" : i2, a2 = e2.input;
+    if (void 0 !== a2.CLEAVE_ZEN_cursor_tracker)
+      return function() {
+        a2.removeEventListener("input", a2.CLEAVE_ZEN_cursor_tracker), a2.CLEAVE_ZEN_cursor_tracker = void 0;
+      };
+    var u2 = [void 0 === r2 ? "" : r2].concat(void 0 === t2 ? [] : t2);
+    return a2.CLEAVE_ZEN_cursor_tracker = function(e3) {
+      var r3, t3 = e3.target;
+      ("deleteContentBackward" === e3.inputType || t3.value.length !== t3.selectionEnd) && (t3.CLEAVE_ZEN_cleanCursorIndex = function(e4) {
+        for (var r4 = e4.value, t4 = e4.dirtyCursorIndex, i3 = e4.delimiters, n3 = t4, a3 = 0; a3 < t4; a3++)
+          i3.includes(r4[a3]) && n3--;
+        return n3;
+      }({ value: t3.value, dirtyCursorIndex: null != (r3 = t3.selectionEnd) ? r3 : 0, delimiters: u2 }), setTimeout(function() {
+        var e4;
+        if (l({ value: t3.value, delimiters: u2 }) !== n2) {
+          var r4 = function(e5) {
+            for (var r5 = e5.value, t4 = e5.delimiters, i3 = e5.cleanCursorIndex, n3 = 0; n3 < r5.length && (t4.includes(r5[n3]) && i3++, n3 !== i3 - 1); n3++)
+              ;
+            return i3;
+          }({ value: t3.value, cleanCursorIndex: null != (e4 = t3.CLEAVE_ZEN_cleanCursorIndex) ? e4 : 0, delimiters: u2 });
+          t3.setSelectionRange(r4, r4);
+        }
+      }, 0));
+    }, a2.addEventListener("input", a2.CLEAVE_ZEN_cursor_tracker), function() {
+      a2.removeEventListener("input", a2.CLEAVE_ZEN_cursor_tracker), a2.CLEAVE_ZEN_cursor_tracker = void 0;
+    };
+  };
+  var s = function(e2, r2) {
+    var t2 = r2.blocks, n2 = r2.delimiter, a2 = void 0 === n2 ? "" : n2, c2 = r2.delimiters, s2 = void 0 === c2 ? [] : c2, o = r2.delimiterLazyShow, d2 = void 0 !== o && o, v2 = r2.prefix, m2 = void 0 === v2 ? "" : v2, f2 = r2.numericOnly, p2 = void 0 !== f2 && f2, h2 = r2.uppercase, E2 = void 0 !== h2 && h2, g = r2.lowercase, I = void 0 !== g && g;
+    return a2.length > 0 && s2.push(a2), e2 = function(e3) {
+      var r3 = e3.value, t3 = e3.prefix, i2 = e3.tailPrefix, n3 = t3.length;
+      return 0 === n3 ? r3 : r3 === t3 && "" !== r3 ? "" : r3.slice(0, n3) === t3 || i2 ? r3.slice(-n3) !== t3 && i2 ? "" : i2 ? r3.slice(0, -n3) : r3.slice(n3) : "";
+    }({ value: e2 = l({ value: e2, delimiters: s2 }), prefix: m2, tailPrefix: false }), e2 = p2 ? i(e2) : e2, e2 = E2 ? e2.toUpperCase() : e2, e2 = I ? e2.toLowerCase() : e2, m2.length > 0 && (e2 = m2 + e2), u({ value: e2, blocks: t2, delimiter: a2, delimiters: s2, delimiterLazyShow: d2 });
+  };
+  var d = " ";
+  !function(e2) {
+    e2.UATP = "uatp", e2.AMEX = "amex", e2.DINERS = "diners", e2.DISCOVER = "discover", e2.MASTERCARD = "mastercard", e2.DANKORT = "dankort", e2.INSTAPAYMENT = "instapayment", e2.JCB15 = "jcb15", e2.JCB = "jcb", e2.MAESTRO = "maestro", e2.VISA = "visa", e2.MIR = "mir", e2.UNIONPAY = "unionpay", e2.GENERAL = "general";
+  }(t || (t = {}));
+  var v;
+  var m = ((e = {})[t.UATP] = [4, 5, 6], e[t.AMEX] = [4, 6, 5], e[t.DINERS] = [4, 6, 4], e[t.DISCOVER] = [4, 4, 4, 4], e[t.MASTERCARD] = [4, 4, 4, 4], e[t.DANKORT] = [4, 4, 4, 4], e[t.INSTAPAYMENT] = [4, 4, 4, 4], e[t.JCB15] = [4, 6, 5], e[t.JCB] = [4, 4, 4, 4], e[t.MAESTRO] = [4, 4, 4, 4], e[t.VISA] = [4, 4, 4, 4], e[t.MIR] = [4, 4, 4, 4], e[t.UNIONPAY] = [4, 4, 4, 4], e[t.GENERAL] = [4, 4, 4, 4], e);
+  var f = ((r = {})[t.UATP] = /^(?!1800)1\d{0,14}/, r[t.AMEX] = /^3[47]\d{0,13}/, r[t.DISCOVER] = /^(?:6011|65\d{0,2}|64[4-9]\d?)\d{0,12}/, r[t.DINERS] = /^3(?:0([0-5]|9)|[689]\d?)\d{0,11}/, r[t.MASTERCARD] = /^(5[1-5]\d{0,2}|22[2-9]\d{0,1}|2[3-7]\d{0,2})\d{0,12}/, r[t.DANKORT] = /^(5019|4175|4571)\d{0,12}/, r[t.INSTAPAYMENT] = /^63[7-9]\d{0,13}/, r[t.JCB15] = /^(?:2131|1800)\d{0,11}/, r[t.JCB] = /^(?:35\d{0,2})\d{0,12}/, r[t.MAESTRO] = /^(?:5[0678]\d{0,2}|6304|67\d{0,2})\d{0,12}/, r[t.MIR] = /^220[0-4]\d{0,12}/, r[t.VISA] = /^4\d{0,15}/, r[t.UNIONPAY] = /^(62|81)\d{0,14}/, r);
+  var p = function(e2) {
+    var r2 = e2.reduce(function(e3, r3) {
+      return e3 + r3;
+    }, 0);
+    return e2.concat(19 - r2);
+  };
+  var h = function(e2) {
+    for (var r2 = e2.value, i2 = e2.strictMode, n2 = 0, a2 = Object.keys(f); n2 < a2.length; n2++) {
+      var l2 = a2[n2];
+      if (f[l2].test(r2)) {
+        var u2 = m[l2];
+        return { type: l2, blocks: null != i2 && i2 ? p(u2) : u2 };
+      }
+    }
+    return { type: t.GENERAL, blocks: null != i2 && i2 ? p(m.general) : m.general };
+  };
+  var E = function(e2, r2) {
+    var t2 = null != r2 ? r2 : {}, c2 = t2.delimiter, s2 = void 0 === c2 ? " " : c2, o = t2.delimiterLazyShow, d2 = void 0 !== o && o, v2 = t2.strictMode, m2 = void 0 !== v2 && v2;
+    e2 = i(e2), e2 = l({ value: e2, delimiters: [s2] });
+    var f2 = h({ value: e2, strictMode: m2 }).blocks, p2 = n(f2);
+    return e2 = a(e2, p2), u({ value: e2, blocks: f2, delimiter: s2, delimiterLazyShow: d2 });
+  };
+  !function(e2) {
+    e2.THOUSAND = "thousand", e2.LAKH = "lakh", e2.WAN = "wan", e2.NONE = "none";
+  }(v || (v = {}));
+  var x = v.THOUSAND;
+  var M = function(e2, r2) {
+    var t2 = null != r2 ? r2 : {}, i2 = t2.delimiter, n2 = t2.numeralThousandsGroupStyle, a2 = t2.numeralIntegerScale, l2 = t2.numeralDecimalMark, u2 = t2.numeralDecimalScale, c2 = t2.stripLeadingZeroes, s2 = t2.numeralPositiveOnly, o = t2.tailPrefix, d2 = t2.signBeforePrefix, m2 = t2.prefix;
+    return function(e3) {
+      var r3, t3, i3, n3 = e3.delimiter, a3 = e3.numeralDecimalMark, l3 = e3.numeralDecimalScale, u3 = e3.stripLeadingZeroes, c3 = e3.numeralPositiveOnly, s3 = e3.numeralIntegerScale, o2 = e3.numeralThousandsGroupStyle, d3 = e3.signBeforePrefix, m3 = e3.tailPrefix, f2 = e3.prefix, p2 = "", h2 = e3.value.replace(/[A-Za-z]/g, "").replace(a3, "M").replace(/[^\dM-]/g, "").replace(/^-/, "N").replace(/-/g, "").replace("N", null != c3 && c3 ? "" : "-").replace("M", a3);
+      u3 && (h2 = h2.replace(/^(-)?0+(?=\d)/, "$1"));
+      var E2 = "-" === h2.slice(0, 1) ? "-" : "";
+      switch (t3 = d3 ? E2 + f2 : f2 + E2, i3 = h2, h2.includes(a3) && (i3 = (r3 = h2.split(a3))[0], p2 = a3 + r3[1].slice(0, l3)), "-" === E2 && (i3 = i3.slice(1)), s3 > 0 && (i3 = i3.slice(0, s3)), o2) {
+        case v.LAKH:
+          i3 = i3.replace(/(\d)(?=(\d\d)+\d$)/g, "$1" + n3);
+          break;
+        case v.WAN:
+          i3 = i3.replace(/(\d)(?=(\d{4})+$)/g, "$1" + n3);
+          break;
+        case v.THOUSAND:
+          i3 = i3.replace(/(\d)(?=(\d{3})+$)/g, "$1" + n3);
+      }
+      return m3 ? E2 + i3 + (l3 > 0 ? p2 : "") + f2 : t3 + i3 + (l3 > 0 ? p2 : "");
+    }({ value: e2, delimiter: void 0 === i2 ? "," : i2, numeralIntegerScale: void 0 === a2 ? 0 : a2, numeralDecimalMark: void 0 === l2 ? "." : l2, numeralDecimalScale: void 0 === u2 ? 2 : u2, stripLeadingZeroes: void 0 === c2 || c2, numeralPositiveOnly: void 0 !== s2 && s2, numeralThousandsGroupStyle: void 0 === n2 ? x : n2, tailPrefix: void 0 !== o && o, signBeforePrefix: void 0 !== d2 && d2, prefix: void 0 === m2 ? "" : m2 });
+  };
+
+  // src/enx-live-validation.js
+  var ENXLiveValidation = class {
+    constructor(config) {
+      this.config = config;
+      if (this.shouldRun()) {
+        this.email();
+        this.creditCard();
+        this.cvv();
+        this.sortCode(this.config.sortCodeField);
+        this.accountNumber(this.config.accountNumberField);
+        this.amountOther();
+        this.noSpaces(".validate-no-spaces");
+      }
+    }
+    shouldRun() {
+      return this.config.enabled;
+    }
+    email(field = "#en__field_supporter_emailAddress") {
+      this.noSpaces(field);
+    }
+    creditCard(field = "#en__field_transaction_ccnumber") {
+      const creditCardInput = document.querySelector(field);
+      if (creditCardInput) {
+        c({
+          input: creditCardInput,
+          delimiter: d
+        });
+        creditCardInput.addEventListener("input", (e2) => {
+          const value = e2.target.value;
+          creditCardInput.value = E(value);
+          log(`Credit Card: ${value}, formatted to: ${creditCardInput.value}`);
+        });
+      }
+    }
+    cvv(field = "#en__field_transaction_ccvv") {
+      const cvvInput = document.querySelector(field);
+      cvvInput?.addEventListener("input", (e2) => {
+        const value = e2.target.value;
+        cvvInput.value = s(value, {
+          numericOnly: true,
+          blocks: [4]
+        });
+        log(`CVV: ${value}, formatted to: ${cvvInput.value}`);
+      });
+    }
+    sortCode(field) {
+      const sortCodeField = document.getElementsByName(field)[0];
+      if (sortCodeField) {
+        c({
+          input: sortCodeField,
+          delimiter: "-"
+        });
+        sortCodeField.addEventListener("input", (e2) => {
+          const value = e2.target.value;
+          sortCodeField.value = s(value, {
+            delimiter: "-",
+            blocks: [2, 2, 2],
+            numericOnly: true
+          });
+          log(`Sort Code: ${value}, formatted to: ${sortCodeField.value}`);
+        });
+      }
+    }
+    accountNumber(field) {
+      const accountNumberField = document.getElementsByName(field)[0];
+      if (accountNumberField) {
+        accountNumberField.addEventListener("input", (e2) => {
+          const value = e2.target.value;
+          accountNumberField.value = s(value, {
+            blocks: [8],
+            numericOnly: true
+          });
+          log(`Account Number: ${value}, formatted to: ${accountNumberField.value}`);
+        });
+      }
+    }
+    amountOther(field = "transaction.donationAmt.other") {
+      const otherAmountField = document.getElementsByName(field)[0];
+      if (otherAmountField) {
+        otherAmountField.addEventListener("input", (e2) => {
+          const value = e2.target.value;
+          otherAmountField.value = M(value, {
+            numeralThousandsGroupStyle: "none"
+          });
+          log(`Amount Other: ${value}, formatted to: ${otherAmountField.value}`);
+        });
+      }
+    }
+    noSpaces(field = "") {
+      const fields = document.querySelectorAll(field);
+      fields.forEach((field2) => {
+        field2.addEventListener("input", () => {
+          field2.value = field2.value.replace(/\s+/g, "");
+        });
+      });
+    }
+  };
+
   // src/enx.js
   var ENX = class {
     constructor(config = {}) {
       const defaultConfig = {
+        debug: new URLSearchParams(window.location.search).has("debug"),
         proxies: [],
+        liveValidation: {
+          enabled: true,
+          sortCodeField: "supporter.bankRoutingNumber",
+          accountNumberField: "supporter.bankAccountNumber"
+        },
         beforeInit: () => {
         },
         beforeCloakRemoval: () => {
@@ -949,6 +1182,7 @@
         this.enxEmailTarget = new ENXEmailTarget();
         this.enxTweetTarget = new ENXTweetTarget();
         this.enxDonate = new ENXDonate();
+        this.enxLiveValidation = new ENXLiveValidation(this.config.liveValidation);
         this.config.beforeCloakRemoval();
         this.cloak = new ENXCloak();
         this.config.afterInit();
