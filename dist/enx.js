@@ -1053,6 +1053,9 @@
         this.accountNumber(this.config.accountNumberField);
         this.amountOther();
         this.noSpaces(".validate-no-spaces");
+        if (this.config.removeErrorsOnInput) {
+          this.removeErrorsOnInput();
+        }
       }
     }
     shouldRun() {
@@ -1137,6 +1140,22 @@
         });
       });
     }
+    removeErrorsOnInput() {
+      const fields = document.querySelectorAll("input, select, textarea");
+      fields.forEach((field) => {
+        field.addEventListener("input", (e2) => {
+          const fieldContainer = e2.target.closest(".en__field");
+          const hasError = fieldContainer?.classList.contains("en__field--validationFailed");
+          if (hasError) {
+            fieldContainer.classList.remove("en__field--validationFailed");
+            const errorMessage = fieldContainer.querySelector(".en__field__error");
+            if (errorMessage) {
+              errorMessage.style.display = "none";
+            }
+          }
+        });
+      });
+    }
   };
 
   // src/enx.js
@@ -1147,6 +1166,7 @@
         proxies: [],
         liveValidation: {
           enabled: true,
+          removeErrorsOnInput: true,
           sortCodeField: "supporter.bankRoutingNumber",
           accountNumberField: "supporter.bankAccountNumber"
         },

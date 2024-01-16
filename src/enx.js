@@ -20,6 +20,7 @@ export default class ENX {
       proxies: [],
       liveValidation: {
         enabled: true,
+        removeErrorsOnInput: true,
         sortCodeField: "supporter.bankRoutingNumber",
         accountNumberField: "supporter.bankAccountNumber",
       },
