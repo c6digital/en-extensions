@@ -224,7 +224,7 @@
   // src/enx-proxy-fields.js
   var ENXProxyFields = class {
     constructor(proxies = []) {
-      this.proxies = proxies;
+      this.proxies = [...proxies, ...this.getProxyFieldsFromLabels()];
       if (this.shouldRun()) {
         this.activateProxyFields();
       }
@@ -232,16 +232,47 @@
     shouldRun() {
       return this.proxies.length > 0;
     }
+    getProxyFieldsFromLabels() {
+      const proxyFields = [];
+      const labels = document.querySelectorAll("label");
+      labels.forEach((label) => {
+        const labelText = label.textContent;
+        if (labelText.includes("enx-proxy[")) {
+          let source = /enx-proxy\[(.*)]/gi.exec(labelText);
+          const target = document.getElementById(label.getAttribute("for"))?.getAttribute("name");
+          if (source && target) {
+            proxyFields.push({
+              source: source[1],
+              target
+            });
+          }
+        }
+      });
+      return proxyFields;
+    }
     activateProxyFields() {
       this.proxies.forEach((proxy) => {
         const sourceField = proxy.source.split(".")[1];
         const targetField = proxy.target.split(".")[1];
+        const targetFieldInput = document.querySelector(`[name="${proxy.target}"]`);
+        const targetFieldContainer = targetFieldInput?.closest(".en__field");
+        targetFieldContainer?.classList.add("enx-hidden");
         document.querySelectorAll(`[name="${proxy.source}"]`).forEach((input) => {
           input.addEventListener("change", () => {
             setENFieldValue(targetField, getENSupporterData(sourceField));
+            log(
+              `Proxy field "${targetField}" updated with value "${getENSupporterData(
+                sourceField
+              )}" from "${sourceField}"`
+            );
           });
         });
         setENFieldValue(targetField, getENSupporterData(sourceField));
+        log(
+          `Proxy field "${targetField}" updated with value "${getENSupporterData(
+            sourceField
+          )}" from "${sourceField}"`
+        );
       });
     }
   };
