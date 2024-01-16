@@ -237,6 +237,13 @@ a.en__socialShare img.enx-share-icon {
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
+body:not(#en__pagebuilder) .social-share-fb,
+body:not(#en__pagebuilder) .social-share-tw,
+body:not(#en__pagebuilder) .social-share-wa,
+body:not(#en__pagebuilder) .social-share-em-subject,
+body:not(#en__pagebuilder) .social-share-em-body {
+  display: none;
+}
 
 /* src/styles/enx-read-more-mobile.css */
 @media screen and (max-width: 630px) {

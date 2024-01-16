@@ -622,7 +622,6 @@
 
   // src/enx-share.js
   var ENXShare = class {
-    //TODO: Add "customShareSettings" functionality
     constructor() {
       this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
       this.shareLabels = {
@@ -632,11 +631,36 @@
         es: "Compartir en",
         it: "Condividi su"
       };
+      this.customShareSettings = {
+        facebook: {
+          url: "https://www.facebook.com/sharer/sharer.php?u=",
+          msgSelector: ".social-share-fb",
+          btnSelector: ".custom-share-settings.facebook-button"
+        },
+        twitter: {
+          url: "https://twitter.com/intent/tweet?text=",
+          msgSelector: ".social-share-tw",
+          btnSelector: ".custom-share-settings.twitter-button"
+        },
+        whatsapp: {
+          url: "https://api.whatsapp.com/send?text=",
+          msgSelector: ".social-share-wa",
+          btnSelector: ".custom-share-settings.whatsapp-button"
+        },
+        email: {
+          subjectUrl: "mailto:?subject=",
+          subjectSelector: ".social-share-em-subject",
+          bodyUrl: "&body=",
+          bodySelector: ".social-share-em-body",
+          btnSelector: ".custom-share-settings.email-button"
+        }
+      };
       this.makeShareButtons();
       this.setupSharePreview();
       if (this.hasNativeShareLink()) {
         this.addNativeShareElement();
       }
+      this.updateShareLinks();
     }
     makeShareButtons() {
       const shareButtons = document.querySelectorAll(".en__socialShare");
@@ -720,6 +744,25 @@
           }, 2e3);
         });
       }
+    }
+    updateShareLinks() {
+      ["facebook", "twitter", "whatsapp", "email"].forEach((social) => {
+        const config = this.customShareSettings[social];
+        const btn = document.querySelector(config.btnSelector);
+        if (btn) {
+          if (social === "email") {
+            const subject = document.querySelector(config.subjectSelector)?.textContent.trim();
+            const body = document.querySelector(config.bodySelector)?.textContent.trim();
+            btn.setAttribute(
+              "href",
+              config.subjectUrl + encodeURIComponent(subject) + config.bodyUrl + encodeURIComponent(body)
+            );
+          } else {
+            const msg = document.querySelector(config.msgSelector)?.textContent.trim();
+            btn.setAttribute("href", config.url + encodeURIComponent(msg));
+          }
+        }
+      });
     }
   };
 
