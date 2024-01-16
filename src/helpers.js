@@ -131,3 +131,71 @@ export function log(message) {
     );
   }
 }
+
+export function updateNextPageUrl() {
+  const nextButton = document.querySelector(".next-button");
+  nextButton?.setAttribute("href", getNextPageUrl());
+}
+
+/**
+ * Save an array of data to sessionStorage.
+ * storageValue should be a CSS selector for the input field
+ * @param {Array<{storageKey: string, storageValue: string}>} storageMap
+ */
+export function saveDataToStorage(storageMap = []) {
+  storageMap.forEach((element) => {
+    const input = document.querySelector(element.storageValue);
+    if (input && input.value) {
+      sessionStorage.setItem(element.storageKey, input.value);
+    }
+  });
+}
+
+/**
+ * Get an array of data from sessionStorage and update the text of the target element.
+ * target should be a CSS selector for the field to update the text of.
+ * @param {Array<{target: string, key: string}>} storageMap
+ */
+export function getDataFromStorage(storageMap = []) {
+  storageMap.forEach(function (element) {
+    const target = document.querySelector(element.target);
+    if (target) {
+      target.innerText = sessionStorage.getItem(element.key);
+    }
+  });
+}
+
+export function updateCurrentYear() {
+  document.querySelectorAll(".current-year").forEach((el) => {
+    el.innerText = new Date().getFullYear();
+  });
+}
+
+/**
+ * @param {Array<{key: string, maxlength: string}>} fields
+ */
+export function addMaxLength(fields) {
+  fields.forEach((field) => {
+    document.querySelector(field.key)?.setAttribute("maxlength", field.maxlength);
+  });
+}
+
+export function disableSubmitButton(spinner = true) {
+  const submitButtons = document.querySelectorAll(".en__submit button");
+
+  submitButtons.forEach((button) => {
+    button.disabled = true;
+    if (spinner) {
+      button.innerHTML = `<span class="submit-spinner spinner-border"></span> ${button.innerHTML}`;
+    }
+  });
+}
+
+export function enableSubmitButton() {
+  const submitButtons = document.querySelectorAll(".en__submit button");
+
+  submitButtons.forEach((button) => {
+    button.disabled = false;
+    button.querySelector(".submit-spinner")?.remove();
+  });
+}

@@ -263,3 +263,24 @@ body:not(#en__pagebuilder) .enx-cloak {
 body:not(#en__pagebuilder) .enx-hidden {
   display: none !important;
 }
+.spinner-border {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.7rem;
+  vertical-align: unset;
+  border: 0.15rem solid currentcolor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: 1s linear infinite spinner-border;
+}
+.en__submit button:not(:disabled):not(.disabled) .submit-spinner,
+.en-submit-button:not(:disabled):not(.disabled) .submit-spinner,
+.btn.primary-btn:not(:disabled):not(.disabled) .submit-spinner {
+  display: none;
+}
+@keyframes spinner-border {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -8,9 +8,13 @@
   // src/helpers.js
   var helpers_exports = {};
   __export(helpers_exports, {
+    addMaxLength: () => addMaxLength,
+    disableSubmitButton: () => disableSubmitButton,
     displayDonationAmt: () => displayDonationAmt,
+    enableSubmitButton: () => enableSubmitButton,
     getCurrency: () => getCurrency,
     getCurrencySymbol: () => getCurrencySymbol,
+    getDataFromStorage: () => getDataFromStorage,
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
     getENValidators: () => getENValidators,
@@ -21,10 +25,13 @@
     getVisibleValidators: () => getVisibleValidators,
     giftAidCalculation: () => giftAidCalculation,
     log: () => log,
+    saveDataToStorage: () => saveDataToStorage,
     saveDonationAmtToStorage: () => saveDonationAmtToStorage,
     saveFieldValueToSessionStorage: () => saveFieldValueToSessionStorage,
     setENFieldValue: () => setENFieldValue,
     shuffleArray: () => shuffleArray,
+    updateCurrentYear: () => updateCurrentYear,
+    updateNextPageUrl: () => updateNextPageUrl,
     validateVisibleFields: () => validateVisibleFields
   });
   function getENFieldValue(field, sessionFallback = true) {
@@ -134,6 +141,52 @@
         "color: #241C15; background-color: #FF3EBF; padding: 4px; font-weight: 400;"
       );
     }
+  }
+  function updateNextPageUrl() {
+    const nextButton = document.querySelector(".next-button");
+    nextButton?.setAttribute("href", getNextPageUrl());
+  }
+  function saveDataToStorage(storageMap = []) {
+    storageMap.forEach((element) => {
+      const input = document.querySelector(element.storageValue);
+      if (input && input.value) {
+        sessionStorage.setItem(element.storageKey, input.value);
+      }
+    });
+  }
+  function getDataFromStorage(storageMap = []) {
+    storageMap.forEach(function(element) {
+      const target = document.querySelector(element.target);
+      if (target) {
+        target.innerText = sessionStorage.getItem(element.key);
+      }
+    });
+  }
+  function updateCurrentYear() {
+    document.querySelectorAll(".current-year").forEach((el) => {
+      el.innerText = (/* @__PURE__ */ new Date()).getFullYear();
+    });
+  }
+  function addMaxLength(fields) {
+    fields.forEach((field) => {
+      document.querySelector(field.key)?.setAttribute("maxlength", field.maxlength);
+    });
+  }
+  function disableSubmitButton(spinner = true) {
+    const submitButtons = document.querySelectorAll(".en__submit button");
+    submitButtons.forEach((button) => {
+      button.disabled = true;
+      if (spinner) {
+        button.innerHTML = `<span class="submit-spinner spinner-border"></span> ${button.innerHTML}`;
+      }
+    });
+  }
+  function enableSubmitButton() {
+    const submitButtons = document.querySelectorAll(".en__submit button");
+    submitButtons.forEach((button) => {
+      button.disabled = false;
+      button.querySelector(".submit-spinner")?.remove();
+    });
   }
 
   // src/enx-model.js
