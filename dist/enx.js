@@ -44,7 +44,6 @@
     if (sessionFallback && fieldValue) {
       return fieldValue;
     }
-    console.log("fallback to dom", field);
     const fieldElements = document.querySelectorAll(`[name="${field}"]`);
     for (const fieldElement of fieldElements) {
       if (fieldElement.type === "checkbox" || fieldElement.type === "radio") {
