@@ -11,7 +11,7 @@ export default class ENXEmailTarget {
     if (imageEls.length === 0) return;
 
     imageEls.forEach(async (img) => {
-      img.src = getMPPhotoUrl(img.dataset.mpName, img.dataset.mpLocation);
+      img.src = await getMPPhotoUrl(img.dataset.mpName, img.dataset.mpLocation);
     });
   }
 }
