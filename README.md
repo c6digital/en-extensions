@@ -7,6 +7,11 @@ EN extensions add a number of helpful features to Engaging Networks templates, s
 - Multi-step form support
 - Social sharing enhancements
 - Support for showing/hiding content based on field values
+- Various enhancements to different page types.
+
+ENX aims to be a general purpose library for adding enhancements to Engaging Networks pages, that can be controlled via its configuration options through its constructor or via a `window.ENXPageConfig` variable (for per-page configuration). If a component can be used across multiple different Engaging Networks clients and its behaviour can be configured, then it's a good candidate for inclusion in ENX.
+
+Any further customisations should be done via a Client Theme and then hooked into ENX via the lifecycle hooks.
 
 ## Development
 
