@@ -29,14 +29,19 @@ export default class ENXModel {
 
       inputs.forEach((input) => {
         input.addEventListener("change", () => {
-          const className = CSS.escape(`enx-model:${bindSource}`);
-          const elements = [...document.querySelectorAll(`.${className}`)];
-          const value = getENFieldValue(bindSource.split(".")[1]);
-          elements.forEach((element) => {
-            element.textContent = value;
-          });
+          this.updateTargetsWithSourceValue(bindSource);
         });
+        this.updateTargetsWithSourceValue(bindSource);
       });
+    });
+  }
+
+  updateTargetsWithSourceValue(sourceFieldName) {
+    const className = CSS.escape(`enx-model:${sourceFieldName}`);
+    const elements = [...document.querySelectorAll(`.${className}`)];
+    const value = getENFieldValue(sourceFieldName);
+    elements.forEach((element) => {
+      element.textContent = value;
     });
   }
 }

@@ -11,7 +11,7 @@
  * Fields can also be configured by giving the target field a label like this:
  * enx-proxy[SOURCE_FIELD_NAME] e.g. enx-proxy[transaction.recurrpay]
  */
-import { getENSupporterData, log, setENFieldValue } from "./helpers";
+import { getENFieldValue, getENSupporterData, log, setENFieldValue } from "./helpers";
 
 export default class ENXProxyFields {
   constructor(proxies = []) {
@@ -49,26 +49,26 @@ export default class ENXProxyFields {
 
   activateProxyFields() {
     this.proxies.forEach((proxy) => {
-      const sourceField = proxy.source.split(".")[1];
-      const targetField = proxy.target.split(".")[1];
-      const targetFieldInput = document.querySelector(`[name="${proxy.target}"]`);
+      const sourceField = proxy.source;
+      const targetField = proxy.target;
+      const targetFieldInput = document.querySelector(`[name="${targetField}"]`);
       const targetFieldContainer = targetFieldInput?.closest(".en__field");
       targetFieldContainer?.classList.add("enx-hidden");
 
-      document.querySelectorAll(`[name="${proxy.source}"]`).forEach((input) => {
+      document.querySelectorAll(`[name="${sourceField}"]`).forEach((input) => {
         input.addEventListener("change", () => {
-          setENFieldValue(targetField, getENSupporterData(sourceField));
+          setENFieldValue(targetField, getENFieldValue(sourceField));
           log(
-            `Proxy field "${targetField}" updated with value "${getENSupporterData(
+            `Proxy field "${targetField}" updated with value "${getENFieldValue(
               sourceField
             )}" from "${sourceField}"`
           );
         });
       });
 
-      setENFieldValue(targetField, getENSupporterData(sourceField));
+      setENFieldValue(targetField, getENFieldValue(sourceField));
       log(
-        `Proxy field "${targetField}" updated with value "${getENSupporterData(
+        `Proxy field "${targetField}" updated with value "${getENFieldValue(
           sourceField
         )}" from "${sourceField}"`
       );

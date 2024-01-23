@@ -1,15 +1,45 @@
 export function getENFieldValue(field, sessionFallback = true) {
-  const fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(field);
-  if (fieldValue) return fieldValue;
-  if (sessionFallback) return getENSupporterData(field);
+  const enFieldName = field.split(".")[1];
+
+  // Try getting field value from EN
+  let fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(enFieldName);
+  if (fieldValue) {
+    return fieldValue;
+  }
+
+  // Fallback to EN supporter data in EN's session
+  fieldValue = getENSupporterData(enFieldName, false);
+  if (sessionFallback && fieldValue) {
+    return fieldValue;
+  }
+
+  // Finally, try getting field value from the DOM
+  const fieldElements = document.querySelectorAll(`[name="${field}"]`);
+  for (const fieldElement of fieldElements) {
+    if (fieldElement.type === "checkbox" || fieldElement.type === "radio") {
+      if (fieldElement.checked) {
+        return fieldElement.value;
+      }
+    } else {
+      return fieldElement.value;
+    }
+  }
+
+  // If no matching element is found or none is checked for checkboxes/radios
   return null;
 }
 
-export function getENSupporterData(field) {
+export function getENSupporterData(field, sliceFieldName = true) {
+  if (sliceFieldName) {
+    field = field.split(".")[1];
+  }
   return window.EngagingNetworks.require._defined.enDefaults.getSupporterData(field);
 }
 
-export function setENFieldValue(field, value) {
+export function setENFieldValue(field, value, sliceFieldName = true) {
+  if (sliceFieldName) {
+    field = field.split(".")[1];
+  }
   window.EngagingNetworks.require._defined.enDefaults.setFieldValue(field, value);
 }
 
@@ -76,7 +106,9 @@ export function getEnPageLocale() {
 }
 
 export function getCurrency() {
-  return getENFieldValue("paycurrency") || getENFieldValue("currency") || "USD";
+  return (
+    getENFieldValue("transaction.paycurrency") || getENFieldValue("transaction.currency") || "USD"
+  );
 }
 
 export function getCurrencySymbol() {
@@ -94,7 +126,7 @@ export function saveFieldValueToSessionStorage(field, key = null) {
 }
 
 export function saveDonationAmtToStorage() {
-  saveFieldValueToSessionStorage("donationAmt");
+  saveFieldValueToSessionStorage("transaction.donationAmt", "donationAmt");
 }
 
 export function displayDonationAmt() {

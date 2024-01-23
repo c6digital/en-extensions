@@ -116,7 +116,7 @@ export default class ENXShow {
       return;
     }
 
-    const val = getENSupporterData("recurrpay");
+    const val = getENSupporterData("transaction.recurrpay");
     if (val === "Y") {
       this.showElements(".show\\:recurring--monthly");
       return;
@@ -144,7 +144,7 @@ export default class ENXShow {
   showTaxDeductible() {
     this.hideElements("[class*='show:giftaid--']");
 
-    const val = getENSupporterData("taxdeductible");
+    const val = getENSupporterData("transaction.taxdeductible");
 
     if (val === "Y") {
       this.showElements(".show\\:giftaid--Y");
@@ -170,7 +170,7 @@ export default class ENXShow {
   showPaymentType() {
     this.hideElements("[class*='show:payment--']");
 
-    const val = getENSupporterData("paymenttype");
+    const val = getENSupporterData("transaction.paymenttype");
 
     switch (val) {
       case "card":

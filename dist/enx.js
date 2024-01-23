@@ -35,17 +35,38 @@
     validateVisibleFields: () => validateVisibleFields
   });
   function getENFieldValue(field, sessionFallback = true) {
-    const fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(field);
-    if (fieldValue)
+    const enFieldName = field.split(".")[1];
+    let fieldValue = window.EngagingNetworks.require._defined.enDefaults.getFieldValue(enFieldName);
+    if (fieldValue) {
       return fieldValue;
-    if (sessionFallback)
-      return getENSupporterData(field);
+    }
+    fieldValue = getENSupporterData(enFieldName, false);
+    if (sessionFallback && fieldValue) {
+      return fieldValue;
+    }
+    console.log("fallback to dom", field);
+    const fieldElements = document.querySelectorAll(`[name="${field}"]`);
+    for (const fieldElement of fieldElements) {
+      if (fieldElement.type === "checkbox" || fieldElement.type === "radio") {
+        if (fieldElement.checked) {
+          return fieldElement.value;
+        }
+      } else {
+        return fieldElement.value;
+      }
+    }
     return null;
   }
-  function getENSupporterData(field) {
+  function getENSupporterData(field, sliceFieldName = true) {
+    if (sliceFieldName) {
+      field = field.split(".")[1];
+    }
     return window.EngagingNetworks.require._defined.enDefaults.getSupporterData(field);
   }
-  function setENFieldValue(field, value) {
+  function setENFieldValue(field, value, sliceFieldName = true) {
+    if (sliceFieldName) {
+      field = field.split(".")[1];
+    }
     window.EngagingNetworks.require._defined.enDefaults.setFieldValue(field, value);
   }
   function getENValidators() {
@@ -98,7 +119,7 @@
     return window.pageJson.locale.substring(0, 2) || "en";
   }
   function getCurrency() {
-    return getENFieldValue("paycurrency") || getENFieldValue("currency") || "USD";
+    return getENFieldValue("transaction.paycurrency") || getENFieldValue("transaction.currency") || "USD";
   }
   function getCurrencySymbol() {
     return 1 .toLocaleString(getEnPageLocale(), {
@@ -112,7 +133,7 @@
     sessionStorage.setItem(key, getENFieldValue(field));
   }
   function saveDonationAmtToStorage() {
-    saveFieldValueToSessionStorage("donationAmt");
+    saveFieldValueToSessionStorage("transaction.donationAmt", "donationAmt");
   }
   function displayDonationAmt() {
     const donationAmtDisplay = document.querySelector(".display-donation-amt");
@@ -209,14 +230,18 @@
         const inputs = [...document.querySelectorAll(`[name="${bindSource}"]`)];
         inputs.forEach((input) => {
           input.addEventListener("change", () => {
-            const className = CSS.escape(`enx-model:${bindSource}`);
-            const elements = [...document.querySelectorAll(`.${className}`)];
-            const value = getENFieldValue(bindSource.split(".")[1]);
-            elements.forEach((element) => {
-              element.textContent = value;
-            });
+            this.updateTargetsWithSourceValue(bindSource);
           });
+          this.updateTargetsWithSourceValue(bindSource);
         });
+      });
+    }
+    updateTargetsWithSourceValue(sourceFieldName) {
+      const className = CSS.escape(`enx-model:${sourceFieldName}`);
+      const elements = [...document.querySelectorAll(`.${className}`)];
+      const value = getENFieldValue(sourceFieldName);
+      elements.forEach((element) => {
+        element.textContent = value;
       });
     }
   };
@@ -252,24 +277,24 @@
     }
     activateProxyFields() {
       this.proxies.forEach((proxy) => {
-        const sourceField = proxy.source.split(".")[1];
-        const targetField = proxy.target.split(".")[1];
-        const targetFieldInput = document.querySelector(`[name="${proxy.target}"]`);
+        const sourceField = proxy.source;
+        const targetField = proxy.target;
+        const targetFieldInput = document.querySelector(`[name="${targetField}"]`);
         const targetFieldContainer = targetFieldInput?.closest(".en__field");
         targetFieldContainer?.classList.add("enx-hidden");
-        document.querySelectorAll(`[name="${proxy.source}"]`).forEach((input) => {
+        document.querySelectorAll(`[name="${sourceField}"]`).forEach((input) => {
           input.addEventListener("change", () => {
-            setENFieldValue(targetField, getENSupporterData(sourceField));
+            setENFieldValue(targetField, getENFieldValue(sourceField));
             log(
-              `Proxy field "${targetField}" updated with value "${getENSupporterData(
+              `Proxy field "${targetField}" updated with value "${getENFieldValue(
                 sourceField
               )}" from "${sourceField}"`
             );
           });
         });
-        setENFieldValue(targetField, getENSupporterData(sourceField));
+        setENFieldValue(targetField, getENFieldValue(sourceField));
         log(
-          `Proxy field "${targetField}" updated with value "${getENSupporterData(
+          `Proxy field "${targetField}" updated with value "${getENFieldValue(
             sourceField
           )}" from "${sourceField}"`
         );
@@ -530,7 +555,7 @@
         this.showElements(".show\\:recurring--monthly");
         return;
       }
-      const val = getENSupporterData("recurrpay");
+      const val = getENSupporterData("transaction.recurrpay");
       if (val === "Y") {
         this.showElements(".show\\:recurring--monthly");
         return;
@@ -552,7 +577,7 @@
     }
     showTaxDeductible() {
       this.hideElements("[class*='show:giftaid--']");
-      const val = getENSupporterData("taxdeductible");
+      const val = getENSupporterData("transaction.taxdeductible");
       if (val === "Y") {
         this.showElements(".show\\:giftaid--Y");
       } else if (val === "N") {
@@ -571,7 +596,7 @@
     }
     showPaymentType() {
       this.hideElements("[class*='show:payment--']");
-      const val = getENSupporterData("paymenttype");
+      const val = getENSupporterData("transaction.paymenttype");
       switch (val) {
         case "card":
           this.showElements(".show\\:payment--card");
