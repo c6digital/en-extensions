@@ -61,10 +61,10 @@ export default class ENXTweetTarget {
     sentBtn.style.display = "none";
   }
 
-  setMPPhoto() {
+  async setMPPhoto() {
     const mpJson = JSON.parse(document.querySelector(".en__tweetBackgroundText").textContent);
     const img = document.querySelector(".en__twitterTarget__image");
-    img.src = getMPPhotoUrl(mpJson.name, mpJson.location);
+    img.src = await getMPPhotoUrl(mpJson.name, mpJson.location);
   }
 
   customTweets() {
@@ -110,6 +110,10 @@ export default class ENXTweetTarget {
 
         .spin {
           animation: spin 0.5s ease-in-out;
+        }
+        
+        .en__tweetButton--sent .en__tweetButton__send {
+          display: inline-block;
         }
 
         @keyframes spin {
