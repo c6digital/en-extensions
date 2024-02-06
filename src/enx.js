@@ -47,6 +47,7 @@ export default class ENX {
 
     this.waitForEnDefaults().then(() => {
       this.enxHelpers = helpers;
+      this.enxHelpers.transformEnxClassesToDataAttributes();
       this.enxModel = new ENXModel();
       this.enxProxyFields = new ENXProxyFields(this.config.proxies);
       this.enxMultiStepForm = new ENXMultiStepForm();

@@ -231,3 +231,160 @@ export function enableSubmitButton() {
     button.querySelector(".submit-spinner")?.remove();
   });
 }
+
+/**
+ * Convert ENX classes on elements to ENX data attributes
+ * @param {string|HTMLElement|NodeListOf<Element>} selector A CSS selector, an HTMLElement, or a NodeListOf<HTMLElement>
+ * @returns {void}
+ */
+export function transformEnxClassesToDataAttributes(selector = "[class*='enx-']") {
+  let elements;
+
+  if (typeof selector instanceof NodeList) {
+    elements = selector;
+  } else if (selector instanceof HTMLElement) {
+    elements = [selector];
+  } else {
+    elements = document.querySelectorAll(selector);
+  }
+
+  elements.forEach((element) => {
+    const classes = element.className.split(" ");
+
+    let dataAttributes = null;
+
+    //Looking for any classes on the element that start with "enx-"
+    classes.forEach((className) => {
+      if (!className.includes("enx-")) return;
+      //We handle dataAttributes like this in case there are multiple classes of the same component on the element
+      dataAttributes = dataAttributes || [];
+      //Getting the component name and attributes (in square brackets) from the class
+      const parts = className.split(/[\[\]]/).filter(Boolean);
+      // If the first part has a colon, it's a component name with a modifier, so we only want the component name
+      const componentName = parts[0].split(":")[0];
+      // Getting our attributes from the rest of the parts array
+      const attributes = {};
+      for (let i = 1; i < parts.length; i++) {
+        const [key, value] = parts[i].split("=");
+        attributes[key] = value;
+      }
+
+      //If we already have data attributes for this component, add the new attributes to the array
+      //If not, create a new entry in the array
+      /*
+      Example entry:
+        {
+          "componentName": "enx-html",
+          "attributes": [{
+            "source": "campaign-content",
+          }]
+        }
+      */
+      const componentDataAttribute = dataAttributes.find(
+        (data) => data.componentName === componentName
+      );
+      if (componentDataAttribute) {
+        componentDataAttribute.attributes.push(attributes);
+      } else {
+        dataAttributes.push({
+          componentName,
+          attributes: Object.keys(attributes).length > 0 ? [attributes] : [],
+        });
+      }
+    });
+
+    if (!dataAttributes) return;
+
+    //For each component, add a data attribute to the element
+    dataAttributes.forEach((data) => {
+      //Component with attributes = JSON string (array of objects)
+      //Component without attributes = empty string
+      const attributeData = data.attributes.length > 0 ? JSON.stringify(data.attributes) : "";
+      element.setAttribute(`data-${data.componentName}`, attributeData);
+      log(`Data attribute set "data-${data.componentName}" = ${attributeData}`);
+    });
+  });
+}
+
+/**
+ * Get elements of a specific ENX component
+ * @param {string} component The ENX component name
+ * @returns {NodeListOf<Element>}
+ */
+export function getElementsOfComponent(component) {
+  return document.querySelectorAll(`[data-enx-${component}]`);
+}
+
+/**
+ * Get the attributes of a specific ENX component on an element
+ * @param {Element} element The element to get the attributes from
+ * @param {string} component The ENX component name
+ * @return {Array|null}
+ */
+export function getComponentAttributes(element, component) {
+  const attributeValue = element.getAttribute(`data-enx-${component}`);
+  if (!attributeValue) return null;
+  try {
+    return JSON.parse(attributeValue);
+  } catch (e) {
+    log(`Error parsing JSON "${attributeValue}" for "enx-${component}"`);
+    return null;
+  }
+}
+
+/**
+ * Get a specific attribute of an ENX component on an element.
+ * Returns the first attribute found with that name.
+ * @param {Element} element The element to get the attributes from
+ * @param {string} component The ENX component name
+ * @param attribute The attribute to get
+ * @returns {any|null}
+ */
+export function getComponentAttribute(element, component, attribute) {
+  const attributes = getComponentAttributes(element, component);
+  if (attributes) {
+    return attributes[0][attribute] || null;
+  }
+  return null;
+}
+
+/**
+ * Get elements with a specific attribute on an ENX component
+ * @param {string} componentName
+ * @param {string} attributeName
+ * @param {string|null} attributeValue if value is null, it will return elements with the attribute regardless of value
+ * @returns {Element[]}
+ */
+export function getElementsWithComponentAttribute(
+  componentName,
+  attributeName,
+  attributeValue = null
+) {
+  const elements = getElementsOfComponent(componentName);
+
+  return [...elements].filter((el) => {
+    const attributeData = getComponentAttributes(el, componentName);
+    if (attributeValue) {
+      return attributeData
+        ? attributeData.some((obj) => obj[attributeName] === attributeValue)
+        : false;
+    } else {
+      return attributeData ? attributeData.some((obj) => obj[attributeName]) : false;
+    }
+  });
+}
+
+/**
+ * Get the first element with a specific attribute with a specific value on an ENX component
+ * @param {string} componentName
+ * @param {string} attributeName
+ * @param {string|null} attributeValue if value is null, it will return elements with the attribute regardless of value
+ * @returns {Element}
+ */
+export function getFirstElementWithComponentAttribute(
+  componentName,
+  attributeName,
+  attributeValue = null
+) {
+  return getElementsWithComponentAttribute(componentName, attributeName, attributeValue)[0];
+}

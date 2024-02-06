@@ -12,13 +12,18 @@
     disableSubmitButton: () => disableSubmitButton,
     displayDonationAmt: () => displayDonationAmt,
     enableSubmitButton: () => enableSubmitButton,
+    getComponentAttribute: () => getComponentAttribute,
+    getComponentAttributes: () => getComponentAttributes,
     getCurrency: () => getCurrency,
     getCurrencySymbol: () => getCurrencySymbol,
     getDataFromStorage: () => getDataFromStorage,
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
     getENValidators: () => getENValidators,
+    getElementsOfComponent: () => getElementsOfComponent,
+    getElementsWithComponentAttribute: () => getElementsWithComponentAttribute,
     getEnPageLocale: () => getEnPageLocale,
+    getFirstElementWithComponentAttribute: () => getFirstElementWithComponentAttribute,
     getMPData: () => getMPData,
     getMPPhotoUrl: () => getMPPhotoUrl,
     getNextPageUrl: () => getNextPageUrl,
@@ -30,6 +35,7 @@
     saveFieldValueToSessionStorage: () => saveFieldValueToSessionStorage,
     setENFieldValue: () => setENFieldValue,
     shuffleArray: () => shuffleArray,
+    transformEnxClassesToDataAttributes: () => transformEnxClassesToDataAttributes,
     updateCurrentYear: () => updateCurrentYear,
     updateNextPageUrl: () => updateNextPageUrl,
     validateVisibleFields: () => validateVisibleFields
@@ -208,27 +214,107 @@
       button.querySelector(".submit-spinner")?.remove();
     });
   }
+  function transformEnxClassesToDataAttributes(selector = "[class*='enx-']") {
+    let elements;
+    if (typeof selector instanceof NodeList) {
+      elements = selector;
+    } else if (selector instanceof HTMLElement) {
+      elements = [selector];
+    } else {
+      elements = document.querySelectorAll(selector);
+    }
+    elements.forEach((element) => {
+      const classes = element.className.split(" ");
+      let dataAttributes = null;
+      classes.forEach((className) => {
+        if (!className.includes("enx-"))
+          return;
+        dataAttributes = dataAttributes || [];
+        const parts = className.split(/[\[\]]/).filter(Boolean);
+        const componentName = parts[0].split(":")[0];
+        const attributes = {};
+        for (let i2 = 1; i2 < parts.length; i2++) {
+          const [key, value] = parts[i2].split("=");
+          attributes[key] = value;
+        }
+        const componentDataAttribute = dataAttributes.find(
+          (data) => data.componentName === componentName
+        );
+        if (componentDataAttribute) {
+          componentDataAttribute.attributes.push(attributes);
+        } else {
+          dataAttributes.push({
+            componentName,
+            attributes: Object.keys(attributes).length > 0 ? [attributes] : []
+          });
+        }
+      });
+      if (!dataAttributes)
+        return;
+      dataAttributes.forEach((data) => {
+        const attributeData = data.attributes.length > 0 ? JSON.stringify(data.attributes) : "";
+        element.setAttribute(`data-${data.componentName}`, attributeData);
+        log(`Data attribute set "data-${data.componentName}" = ${attributeData}`);
+      });
+    });
+  }
+  function getElementsOfComponent(component) {
+    return document.querySelectorAll(`[data-enx-${component}]`);
+  }
+  function getComponentAttributes(element, component) {
+    const attributeValue = element.getAttribute(`data-enx-${component}`);
+    if (!attributeValue)
+      return null;
+    try {
+      return JSON.parse(attributeValue);
+    } catch (e2) {
+      log(`Error parsing JSON "${attributeValue}" for "enx-${component}"`);
+      return null;
+    }
+  }
+  function getComponentAttribute(element, component, attribute) {
+    const attributes = getComponentAttributes(element, component);
+    if (attributes) {
+      return attributes[0][attribute] || null;
+    }
+    return null;
+  }
+  function getElementsWithComponentAttribute(componentName, attributeName, attributeValue = null) {
+    const elements = getElementsOfComponent(componentName);
+    return [...elements].filter((el) => {
+      const attributeData = getComponentAttributes(el, componentName);
+      if (attributeValue) {
+        return attributeData ? attributeData.some((obj) => obj[attributeName] === attributeValue) : false;
+      } else {
+        return attributeData ? attributeData.some((obj) => obj[attributeName]) : false;
+      }
+    });
+  }
+  function getFirstElementWithComponentAttribute(componentName, attributeName, attributeValue = null) {
+    return getElementsWithComponentAttribute(componentName, attributeName, attributeValue)[0];
+  }
 
   // src/enx-model.js
   var ENXModel = class {
     constructor() {
-      this.bindTargets = [...document.querySelectorAll("[class*='enx-model:']")];
+      this.bindTargets = [...getElementsOfComponent("model")];
       if (this.shouldRun()) {
         this.run();
       }
     }
     shouldRun() {
-      return this.bindTargets.length > 0;
+      return this.bindTargets && this.bindTargets.length > 0;
     }
     run() {
-      const bindSources = this.bindTargets.map((element) => {
-        return element.classList.value.split("enx-model:")[1].split(" ")[0];
+      const bindSources = this.bindTargets.map((el) => {
+        const attr = getComponentAttributes(el, "model");
+        return attr[0].source;
       });
       const uniqueBindSources = [...new Set(bindSources)];
       uniqueBindSources.forEach((bindSource) => {
         const inputs = [...document.querySelectorAll(`[name="${bindSource}"]`)];
         inputs.forEach((input) => {
-          input.addEventListener("change", () => {
+          input.addEventListener("input", () => {
             this.updateTargetsWithSourceValue(bindSource);
           });
           this.updateTargetsWithSourceValue(bindSource);
@@ -236,11 +322,9 @@
       });
     }
     updateTargetsWithSourceValue(sourceFieldName) {
-      const className = CSS.escape(`enx-model:${sourceFieldName}`);
-      const elements = [...document.querySelectorAll(`.${className}`)];
-      const value = getENFieldValue(sourceFieldName);
+      const elements = getElementsWithComponentAttribute("model", "source", sourceFieldName);
       elements.forEach((element) => {
-        element.textContent = value;
+        element.textContent = getENFieldValue(sourceFieldName);
       });
     }
   };
@@ -262,7 +346,7 @@
       labels.forEach((label) => {
         const labelText = label.textContent;
         if (labelText.includes("enx-proxy[")) {
-          let source = /enx-proxy\[(.*)]/gi.exec(labelText);
+          let source = /enx-proxy\[source=(.*)]/gi.exec(labelText);
           const target = document.getElementById(label.getAttribute("for"))?.getAttribute("name");
           if (source && target) {
             proxyFields.push({
@@ -304,9 +388,12 @@
   // src/enx-cloak.js
   var ENXCloak = class {
     constructor() {
-      document.querySelectorAll(".enx-cloak").forEach((element) => {
-        element.classList.remove("enx-cloak");
-      });
+      const elements = getElementsOfComponent("cloak");
+      if (elements) {
+        elements.forEach((el) => {
+          el.classList.remove("enx-cloak");
+        });
+      }
     }
   };
 
@@ -326,80 +413,69 @@
       this.onClick();
     }
     shouldRun() {
-      return !!document.querySelector(".enx-multistep");
+      return !!document.querySelector("[class*='enx-multistep:step']");
     }
     resetTabs() {
       this.currentStep = 0;
-      const multistepTabNames = [
-        ...document.querySelectorAll(".enx-multistep[class*='enx-multistep-name--']")
-      ].map(
-        (tab) => tab.className.match(/enx-multistep-name--[a-z]*/gi)[0].replace("enx-multistep-name--", "")
-      );
-      this.multistepTabs = [...new Set(multistepTabNames)];
+      this.multistepTabs = [...getElementsOfComponent("multistep")].map((tab) => {
+        return getComponentAttribute(tab, "multistep", "name");
+      }).filter(Boolean);
     }
     // Via Direct URL hit
     onUrlHit() {
-      const urlParams = new URLSearchParams(location.href);
-      if (document.querySelectorAll(".enx-multistep-force-start").length && !urlParams.has("override-force-multistep")) {
-        this.changeStep(".enx-multistep-force-start");
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceStartEl = getFirstElementWithComponentAttribute("multistep", "force-start", "true");
+      if (forceStartEl && !urlParams.has("enx-multistep-override-force")) {
+        this.changeStep(forceStartEl);
         history.pushState(null, "", "#");
         this.log("URL", "Show Landing page");
         return;
       }
       if (window.location.hash) {
         const destination = location.hash.replace("#", "");
-        if (document.querySelectorAll(".enx-multistep-name--" + destination).length) {
-          this.changeStep(".enx-multistep-name--" + destination);
+        const stepFromHash = getFirstElementWithComponentAttribute("multistep", "name", destination);
+        if (stepFromHash) {
+          this.changeStep(stepFromHash);
           this.log("URL", 'Show "' + location.hash + '"');
           this.setStep(destination);
-        } else {
-          const spaElements = document.querySelectorAll(".enx-multistep");
-          if ([...spaElements].some((element) => element.className.match(/show:/))) {
-            window.location = window.location.href.split("#")[0];
-          } else {
-            this.changeStep(document.querySelector(".enx-multistep"));
-          }
+          return;
         }
-        return;
       }
-      this.changeStep(document.querySelector(".enx-multistep"));
+      this.changeStep(document.querySelector("[class*='enx-multistep:step']"));
     }
     onBackButton() {
       window.onpopstate = (event) => {
         if (event.state) {
-          this.changeStep(".enx-multistep-name--" + event.state.page);
+          this.changeStep(
+            getFirstElementWithComponentAttribute("multistep", "name", event.state.page)
+          );
           this.log("Browser", 'Show "' + event.state.page + '"');
           this.setStep(event.state.page);
         } else {
-          const spaElements = document.querySelectorAll(".enx-multistep");
-          if ([...spaElements].some((element) => element.className.match(/show:/))) {
-            location.reload();
-          } else {
-            this.changeStep(".enx-multistep");
-            this.log("Browser", "Show Landing page");
-            this.setStep(this.multistepTabs[0]);
-          }
+          this.changeStep(getFirstElementWithComponentAttribute("multistep", "name"));
+          this.log("Browser", "Show Landing page");
+          this.setStep(this.multistepTabs[0]);
         }
       };
     }
     onClick() {
-      const multistepButtons = document.querySelectorAll("[enx-multistep-destination]");
+      const multistepButtons = getElementsWithComponentAttribute("multistep", "destination");
       multistepButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          const destination = event.target.getAttribute("enx-multistep-destination");
+        button.addEventListener("click", () => {
+          const destination = getComponentAttribute(button, "multistep", "destination");
           const destinationIndex = this.multistepTabs.indexOf(destination);
-          const validate = !event.target.hasAttribute("no-validate") && this.currentStep < destinationIndex;
+          const validate = !getComponentAttribute(button, "multistep", "no-validate") && this.currentStep < destinationIndex;
           if (this.currentStep === destinationIndex || validate && destinationIndex > this.currentStep + 1)
             return;
           if (validate && !validateVisibleFields()) {
             window.dispatchEvent(
-              new CustomEvent("onEnxMultistepError", {
+              new CustomEvent("enx-multistep:error", {
                 detail: this.multistepTabs[this.currentStep].className
               })
             );
             return;
           }
-          this.changeStep(".enx-multistep-name--" + destination);
+          this.changeStep(getFirstElementWithComponentAttribute("multistep", "name", destination));
           this.log("App", 'Show "' + destination + '"');
           window.dispatchEvent(
             new CustomEvent("enx-multistep:page-view", {
@@ -422,14 +498,14 @@
       this.hideAndShow(this.multistepTabs[this.currentStep], step);
     }
     hideAndShow(hide, show) {
-      const currentTab = document.querySelector(`.enx-multistep-name--${hide}`);
+      const currentTab = getFirstElementWithComponentAttribute("multistep", "name", hide);
       if (currentTab) {
-        currentTab.classList.remove("enx-multistep-active");
+        currentTab.classList.remove("enx-multistep:active");
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
       const nextTabEl = show instanceof Element ? show : document.querySelector(show);
       if (nextTabEl) {
-        nextTabEl.classList.add("enx-multistep-active");
+        nextTabEl.classList.add("enx-multistep:active");
       }
     }
     setStep(destination) {
@@ -450,16 +526,6 @@
       console.log("Client:	", client);
       console.log("Action:	", action);
     }
-    moveToFirstFailedSpa() {
-      const lastFailedValidation = document.querySelector(".en__field--validationFailed");
-      const failSpa = lastFailedValidation && lastFailedValidation.closest(".enx-multistep");
-      if (!failSpa)
-        return;
-      const tabValidated = Array.from(failSpa.classList).find(
-        (s2) => s2.includes("enx-multistep-name--")
-      );
-      tabValidated && this.changeStep("." + tabValidated);
-    }
   };
 
   // src/enx-show.js
@@ -469,26 +535,25 @@
       this.legacyFunctionality();
     }
     init() {
-      document.querySelectorAll('[class*="enx-show:"]').forEach((conditionalEl) => {
-        const conditionalClass = this.getConditionalClassFromElement(conditionalEl);
-        const classDetails = this.getMatchDetailsFromClass(conditionalClass);
-        if (!classDetails)
-          return;
-        const inputs = document.getElementsByName(classDetails.fieldName);
+      const elements = getElementsOfComponent("show");
+      elements.forEach((element) => {
+        const sourceFieldName = getComponentAttribute(element, "show", "field");
+        const sourceFieldValue = getComponentAttribute(element, "show", "value");
+        const inputs = document.getElementsByName(sourceFieldName);
         if (inputs.length === 0) {
-          conditionalEl.classList.add("enx-hidden");
+          element.classList.add("enx-hidden");
         }
         inputs.forEach((input) => {
           if (input.type === "radio" || input.type === "checkbox") {
-            if (input.value === classDetails.fieldValue && input.checked) {
-              conditionalEl.classList.remove("enx-hidden");
+            if (input.value === sourceFieldValue && input.checked) {
+              element.classList.remove("enx-hidden");
             } else {
-              conditionalEl.classList.add("enx-hidden");
+              element.classList.add("enx-hidden");
             }
-          } else if (input.value === classDetails.fieldValue) {
-            conditionalEl.classList.remove("enx-hidden");
+          } else if (input.value === sourceFieldValue) {
+            element.classList.remove("enx-hidden");
           } else {
-            conditionalEl.classList.add("enx-hidden");
+            element.classList.add("enx-hidden");
           }
         });
       });
@@ -505,31 +570,24 @@
       if (fieldName === "transaction.donationAmt.other") {
         fieldName = "transaction.donationAmt";
       }
-      const conditionalEls = document.querySelectorAll('[class*="enx-show:"]');
-      conditionalEls.forEach((conditionalEl) => {
-        const conditionalClass = this.getConditionalClassFromElement(conditionalEl);
-        const classDetails = this.getMatchDetailsFromClass(conditionalClass);
-        if (!classDetails || classDetails.fieldName !== fieldName)
+      const elements = getElementsOfComponent("show");
+      elements.forEach((element) => {
+        const sourceFieldName = getComponentAttribute(element, "show", "field");
+        const sourceFieldValue = getComponentAttribute(element, "show", "value");
+        if (sourceFieldName !== fieldName)
           return;
-        if (classDetails.fieldValue === fieldValue) {
-          conditionalEl.classList.remove("enx-hidden");
+        if (sourceFieldValue === fieldValue) {
+          log(
+            `showing element with class enx-show[field=${sourceFieldName}][value=${sourceFieldValue}]`
+          );
+          element.classList.remove("enx-hidden");
         } else {
-          conditionalEl.classList.add("enx-hidden");
+          log(
+            `hiding element with class enx-show[field=${sourceFieldName}][value=${sourceFieldValue}]`
+          );
+          element.classList.add("enx-hidden");
         }
       });
-    }
-    getConditionalClassFromElement(conditionalEl) {
-      return conditionalEl.className.split(" ").find((className) => className.includes("enx-show:"));
-    }
-    getMatchDetailsFromClass(conditionalClass) {
-      const regex = /enx-show:([^[]+)\[([^[]+)]/g;
-      const match = regex.exec(conditionalClass);
-      if (!match)
-        return null;
-      return {
-        fieldName: match[1],
-        fieldValue: match[2]
-      };
     }
     //--------------------------------------------------------------------------------
     //Below is legacy functionality for backwards compatibility
@@ -793,25 +851,24 @@
   // src/enx-read-more-mobile.js
   var ENXReadMoreMobile = class {
     constructor() {
-      this.readMoreSections = document.querySelectorAll("[class*='enx-read-more-mobile']");
+      this.readMoreSections = getElementsOfComponent("read-more-mobile");
       if (this.readMoreSections.length > 0) {
         this.addReadMoreSections();
       }
     }
     addReadMoreSections() {
       this.readMoreSections.forEach((section) => {
-        let numberElsToWrap = /enx-read-more-mobile\[([0-9])]/gi.exec(section.className);
-        numberElsToWrap = numberElsToWrap ? parseInt(numberElsToWrap[1]) : 2;
+        let numberElsToWrap = getComponentAttribute(section, "read-more-mobile", "visible") ?? 2;
         const els = [...section.children].slice(numberElsToWrap);
         const wrapper = document.createElement("div");
-        wrapper.className = "enx-read-more-content-mobile";
+        wrapper.className = "enx-read-more:content-mobile";
         els.forEach((element) => {
           wrapper.appendChild(element);
         });
         section.appendChild(wrapper);
         wrapper.insertAdjacentHTML(
           "beforebegin",
-          `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more-toggle-mobile">
+          `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more:toggle">
           Read more
           <svg
             class="rm-icon-normal ml-2"
@@ -848,9 +905,9 @@
         </a>`
         );
       });
-      document.querySelectorAll(".enx-read-more-toggle-mobile").forEach((toggle) => {
+      document.querySelectorAll(".enx-read-more\\:toggle").forEach((toggle) => {
         toggle.addEventListener("click", () => {
-          toggle.closest('[class*="enx-read-more-mobile"]').classList.toggle("enx-read-more-mobile--open");
+          toggle.closest('[class*="enx-read-more-mobile"]').classList.toggle("enx-read-more-mobile:open");
         });
       });
     }
@@ -862,13 +919,17 @@
       this.run();
     }
     run() {
-      const textEls = document.querySelectorAll("[class*='enx-text:']");
-      if (textEls.length > 0) {
-        textEls.forEach((el) => {
-          const className = el.classList.value.split("enx-text:")[1].split(" ")[0];
-          const sourceEl = document.querySelector(`.${className}`);
-          if (sourceEl) {
-            el.textContent = sourceEl.textContent;
+      const elements = getElementsOfComponent("text");
+      if (elements.length > 0) {
+        elements.forEach((el) => {
+          const config = getComponentAttributes(el, "text");
+          if (config) {
+            config.forEach((attr) => {
+              const sourceEl = document.querySelector(`.${attr.source}`);
+              if (sourceEl) {
+                el.textContent = sourceEl.textContent;
+              }
+            });
           }
         });
       }
@@ -881,13 +942,17 @@
       this.run();
     }
     run() {
-      const htmlEls = document.querySelectorAll("[class*='enx-html:']");
-      if (htmlEls.length > 0) {
-        htmlEls.forEach((el) => {
-          const className = el.classList.value.split("enx-html:")[1].split(" ")[0];
-          const sourceEl = document.querySelector(`.${className}`);
-          if (sourceEl) {
-            el.innerHTML = sourceEl.innerHTML;
+      const elements = getElementsOfComponent("html");
+      if (elements.length > 0) {
+        elements.forEach((el) => {
+          const config = getComponentAttributes(el, "html");
+          if (config) {
+            config.forEach((attr) => {
+              const sourceEl = document.querySelector(`.${attr.source}`);
+              if (sourceEl) {
+                el.innerHTML = sourceEl.innerHTML;
+              }
+            });
           }
         });
       }
@@ -1334,6 +1399,7 @@
       this.config.beforeInit();
       this.waitForEnDefaults().then(() => {
         this.enxHelpers = helpers_exports;
+        this.enxHelpers.transformEnxClassesToDataAttributes();
         this.enxModel = new ENXModel();
         this.enxProxyFields = new ENXProxyFields(this.config.proxies);
         this.enxMultiStepForm = new ENXMultiStepForm();

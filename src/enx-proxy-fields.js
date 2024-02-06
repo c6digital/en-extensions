@@ -9,9 +9,9 @@
  * }
  *
  * Fields can also be configured by giving the target field a label like this:
- * enx-proxy[SOURCE_FIELD_NAME] e.g. enx-proxy[transaction.recurrpay]
+ * enx-proxy[source=SOURCE_FIELD_NAME] e.g. enx-proxy[source=transaction.recurrpay]
  */
-import { getENFieldValue, getENSupporterData, log, setENFieldValue } from "./helpers";
+import { getENFieldValue, log, setENFieldValue } from "./helpers";
 
 export default class ENXProxyFields {
   constructor(proxies = []) {
@@ -33,7 +33,7 @@ export default class ENXProxyFields {
     labels.forEach((label) => {
       const labelText = label.textContent;
       if (labelText.includes("enx-proxy[")) {
-        let source = /enx-proxy\[(.*)]/gi.exec(labelText);
+        let source = /enx-proxy\[source=(.*)]/gi.exec(labelText);
         const target = document.getElementById(label.getAttribute("for"))?.getAttribute("name");
         if (source && target) {
           proxyFields.push({

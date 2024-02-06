@@ -1,5 +1,5 @@
 /* src/styles/enx-multi-step-form.css */
-body:not(#en__pagebuilder) .enx-multistep:not(.enx-multistep-active) {
+body:not(#en__pagebuilder) [class*="enx-multistep:step"]:not(.enx-multistep\:active) {
   display: none;
 }
 
@@ -247,18 +247,18 @@ body:not(#en__pagebuilder) .social-share-em-body {
 
 /* src/styles/enx-read-more-mobile.css */
 @media screen and (max-width: 630px) {
-  div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile--open) .enx-read-more-content-mobile {
+  div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile\:open) .enx-read-more\:content-mobile {
     display: none;
   }
-  div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile--open) .rm-icon-expanded {
+  div[class*=enx-read-more-mobile]:not(.enx-read-more-mobile\:open) .rm-icon-expanded {
     display: none;
   }
-  div[class*=enx-read-more-mobile].enx-read-more-mobile--open .rm-icon-normal {
+  div[class*=enx-read-more-mobile].enx-read-more-mobile\:open .rm-icon-normal {
     display: none;
   }
 }
 @media screen and (min-width: 631px) {
-  .enx-read-more-toggle-mobile {
+  .enx-read-more\:toggle {
     display: none;
   }
 }
