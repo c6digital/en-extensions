@@ -1,5 +1,5 @@
 body:not(#en__pagebuilder) .enx-share\:native-title,
-body:not(#en__pagebuilder) .enx-share\:native-title {
+body:not(#en__pagebuilder) .enx-share\:native-description {
   display: none;
 }
 
@@ -286,10 +286,10 @@ a.en__socialShare img.enx-share-icon {
   transform: translate(-50%, -50%);
 }
 
-body:not(#en__pagebuilder) .social-share-fb,
-body:not(#en__pagebuilder) .social-share-tw,
-body:not(#en__pagebuilder) .social-share-wa,
-body:not(#en__pagebuilder) .social-share-em-subject,
-body:not(#en__pagebuilder) .social-share-em-body {
+body:not(#en__pagebuilder) .enx-share\:facebook-link,
+body:not(#en__pagebuilder) .enx-share\:twitter-msg,
+body:not(#en__pagebuilder) .enx-share\:whatsapp-msg,
+body:not(#en__pagebuilder) .enx-share\:email-subject,
+body:not(#en__pagebuilder) .enx-share\:email-body {
   display: none;
 }
