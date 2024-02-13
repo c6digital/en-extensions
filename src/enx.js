@@ -1,4 +1,5 @@
 import * as helpers from "./helpers";
+import { defaultConfig } from "./default-config";
 import ENXModel from "./enx-model";
 import ENXProxyFields from "./enx-proxy-fields";
 import ENXCloak from "./enx-cloak";
@@ -11,24 +12,11 @@ import ENXHtml from "./enx-html";
 import ENXEmailTarget from "./enx-email-target";
 import ENXTweetTarget from "./enx-tweet-target";
 import ENXDonate from "./enx-donate";
-import ENXLiveValidation from "./enx-live-validation";
+import ENXValidate from "./enx-validate";
+import ENXConvert from "./enx-convert";
 
 export default class ENX {
   constructor(config = {}) {
-    const defaultConfig = {
-      debug: new URLSearchParams(window.location.search).has("debug"),
-      proxies: [],
-      liveValidation: {
-        enabled: true,
-        removeErrorsOnInput: true,
-        sortCodeField: "supporter.bankRoutingNumber",
-        accountNumberField: "supporter.bankAccountNumber",
-      },
-      beforeInit: () => {},
-      beforeCloakRemoval: () => {},
-      afterInit: () => {},
-    };
-
     this.config = {
       ...defaultConfig,
       ...config,
@@ -47,6 +35,7 @@ export default class ENX {
 
     this.waitForEnDefaults().then(() => {
       this.enxHelpers = helpers;
+      this.enxHelpers.transformEnxClassesToDataAttributes();
       this.enxModel = new ENXModel();
       this.enxProxyFields = new ENXProxyFields(this.config.proxies);
       this.enxMultiStepForm = new ENXMultiStepForm();
@@ -58,7 +47,8 @@ export default class ENX {
       this.enxEmailTarget = new ENXEmailTarget();
       this.enxTweetTarget = new ENXTweetTarget();
       this.enxDonate = new ENXDonate();
-      this.enxLiveValidation = new ENXLiveValidation(this.config.liveValidation);
+      this.enxValidate = new ENXValidate(this.config.validate);
+      this.enxConvert = new ENXConvert();
 
       // These must come last
       this.config.beforeCloakRemoval();
@@ -78,5 +68,9 @@ export default class ENX {
       }
       checkEnDefaults();
     });
+  }
+
+  static getConfigValue(key) {
+    return window.ENXConfig.hasOwnProperty(key) ? window.ENXConfig[key] : null;
   }
 }

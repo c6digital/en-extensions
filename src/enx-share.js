@@ -2,6 +2,8 @@ import { getEnPageLocale } from "./helpers";
 
 export default class ENXShare {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
     this.shareLabels = {
       en: "Share on",
@@ -13,25 +15,25 @@ export default class ENXShare {
     this.customShareSettings = {
       facebook: {
         url: "https://www.facebook.com/sharer/sharer.php?u=",
-        msgSelector: ".social-share-fb",
-        btnSelector: ".custom-share-settings.facebook-button",
+        msgSelector: "[class*='enx-share:facebook-link']",
+        btnSelector: "[class*='enx-share:facebook-button']",
       },
       twitter: {
         url: "https://twitter.com/intent/tweet?text=",
-        msgSelector: ".social-share-tw",
-        btnSelector: ".custom-share-settings.twitter-button",
+        msgSelector: "[class*='enx-share:twitter-msg']",
+        btnSelector: "[class*='enx-share:twitter-button']",
       },
       whatsapp: {
         url: "https://api.whatsapp.com/send?text=",
-        msgSelector: ".social-share-wa",
-        btnSelector: ".custom-share-settings.whatsapp-button",
+        msgSelector: "[class*='enx-share:whatsapp-msg']",
+        btnSelector: "[class*='enx-share:whatsapp-button']",
       },
       email: {
         subjectUrl: "mailto:?subject=",
-        subjectSelector: ".social-share-em-subject",
+        subjectSelector: "[class*='enx-share:email-subject']",
         bodyUrl: "&body=",
-        bodySelector: ".social-share-em-body",
-        btnSelector: ".custom-share-settings.email-button",
+        bodySelector: "[class*='enx-share:email-body']",
+        btnSelector: "[class*='enx-share:email-button']",
       },
     };
 
@@ -94,19 +96,19 @@ export default class ENXShare {
   }
 
   hasNativeShareLink() {
-    return !!document.querySelector(".social-share-native-link");
+    return !!document.querySelector("[class*='enx-share:native-link']");
   }
 
   addNativeShareElement() {
-    const shareEl = document.querySelector(".social-share-native-link");
-    const shareTitle = document.querySelector(".social-share-native-title");
-    const shareDescription = document.querySelector(".social-share-native-description");
+    const shareEl = document.querySelector("[class*='enx-share:native-link']");
+    const shareTitle = document.querySelector("[class*='enx-share:native-title']");
+    const shareDescription = document.querySelector("[class*='enx-share:native-description']");
 
     if ("navigator" in window && "share" in window.navigator) {
       const shareButtonEl = document.createElement("button");
       shareButtonEl.setAttribute("type", "button");
       shareButtonEl.setAttribute("aria-label", "Share");
-      shareButtonEl.classList.add("social-share-native-button");
+      shareButtonEl.classList.add("enx-share:native-button");
       shareButtonEl.textContent = "Share";
       shareEl.appendChild(shareButtonEl);
 
@@ -129,7 +131,7 @@ export default class ENXShare {
       const copyButtonEl = document.createElement("button");
       copyButtonEl.setAttribute("type", "button");
       copyButtonEl.setAttribute("aria-label", "Copy");
-      copyButtonEl.classList.add("social-share-native-button");
+      copyButtonEl.classList.add("enx-share:native-button");
       copyButtonEl.textContent = "Copy";
       shareEl.appendChild(copyButtonEl);
 
@@ -172,5 +174,9 @@ export default class ENXShare {
         }
       }
     });
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxShare") !== false;
   }
 }

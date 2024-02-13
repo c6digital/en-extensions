@@ -1,19 +1,31 @@
+import { getComponentAttributes, getElementsOfComponent } from "./helpers";
+
 export default class ENXHtml {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.run();
   }
 
   run() {
-    const htmlEls = document.querySelectorAll("[class*='enx-html:']");
+    const elements = getElementsOfComponent("html");
 
-    if (htmlEls.length > 0) {
-      htmlEls.forEach((el) => {
-        const className = el.classList.value.split("enx-html:")[1].split(" ")[0];
-        const sourceEl = document.querySelector(`.${className}`);
-        if (sourceEl) {
-          el.innerHTML = sourceEl.innerHTML;
+    if (elements.length > 0) {
+      elements.forEach((el) => {
+        const config = getComponentAttributes(el, "html");
+        if (config) {
+          config.forEach((attr) => {
+            const sourceEl = document.querySelector(`.${attr.source}`);
+            if (sourceEl) {
+              el.innerHTML = sourceEl.innerHTML;
+            }
+          });
         }
       });
     }
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxHtml") !== false;
   }
 }

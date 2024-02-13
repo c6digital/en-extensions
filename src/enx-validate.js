@@ -7,27 +7,27 @@ import {
   registerCursorTracker,
 } from "cleave-zen";
 
-export default class ENXLiveValidation {
-  constructor(config) {
+export default class ENXValidate {
+  constructor(config = false) {
+    if (!this.isEnabled()) return;
+
     this.config = config;
 
-    if (this.shouldRun()) {
-      this.email();
-      this.creditCard();
-      this.cvv();
-      this.sortCode(this.config.sortCodeField);
-      this.accountNumber(this.config.accountNumberField);
-      this.amountOther();
-      this.noSpaces(".validate-no-spaces");
+    this.email();
+    this.creditCard();
+    this.cvv();
+    this.sortCode(this.config.sortCodeField);
+    this.accountNumber(this.config.accountNumberField);
+    this.amountOther();
+    this.noSpaces('enx-validate[rule="no-spaces"]');
 
-      if (this.config.removeErrorsOnInput) {
-        this.removeErrorsOnInput();
-      }
+    if (this.config.removeErrorsOnInput) {
+      this.removeErrorsOnInput();
     }
   }
 
-  shouldRun() {
-    return this.config.enabled;
+  isEnabled() {
+    return ENX.getConfigValue("enxValidate") !== false;
   }
 
   email(field = "#en__field_supporter_emailAddress") {

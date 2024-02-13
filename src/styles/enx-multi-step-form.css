@@ -1,3 +1,3 @@
-body:not(#en__pagebuilder) .enx-multistep:not(.enx-multistep-active) {
+body:not(#en__pagebuilder) [class*="enx-multistep"]:not(.enx-multistep\:active):not([class*="enx-multistep:button"]) {
   display: none;
 }

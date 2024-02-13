@@ -1,36 +1,37 @@
-import { getENSupporterData } from "./helpers";
+import { getComponentAttribute, getElementsOfComponent, getENSupporterData, log } from "./helpers";
 
 export default class ENXShow {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.init();
     this.legacyFunctionality();
   }
 
   init() {
+    const elements = getElementsOfComponent("show");
     //set show or hide on page load based on default field values
-    document.querySelectorAll('[class*="enx-show:"]').forEach((conditionalEl) => {
-      const conditionalClass = this.getConditionalClassFromElement(conditionalEl);
-      const classDetails = this.getMatchDetailsFromClass(conditionalClass);
+    elements.forEach((element) => {
+      const sourceFieldName = getComponentAttribute(element, "show", "field");
+      const sourceFieldValue = getComponentAttribute(element, "show", "value");
 
-      if (!classDetails) return;
-
-      const inputs = document.getElementsByName(classDetails.fieldName);
+      const inputs = document.getElementsByName(sourceFieldName);
 
       if (inputs.length === 0) {
-        conditionalEl.classList.add("enx-hidden");
+        element.classList.add("enx-hidden");
       }
 
       inputs.forEach((input) => {
         if (input.type === "radio" || input.type === "checkbox") {
-          if (input.value === classDetails.fieldValue && input.checked) {
-            conditionalEl.classList.remove("enx-hidden");
+          if (input.value === sourceFieldValue && input.checked) {
+            element.classList.remove("enx-hidden");
           } else {
-            conditionalEl.classList.add("enx-hidden");
+            element.classList.add("enx-hidden");
           }
-        } else if (input.value === classDetails.fieldValue) {
-          conditionalEl.classList.remove("enx-hidden");
+        } else if (input.value === sourceFieldValue) {
+          element.classList.remove("enx-hidden");
         } else {
-          conditionalEl.classList.add("enx-hidden");
+          element.classList.add("enx-hidden");
         }
       });
     });
@@ -51,38 +52,26 @@ export default class ENXShow {
       fieldName = "transaction.donationAmt";
     }
 
-    const conditionalEls = document.querySelectorAll('[class*="enx-show:"]');
+    const elements = getElementsOfComponent("show");
 
-    conditionalEls.forEach((conditionalEl) => {
-      const conditionalClass = this.getConditionalClassFromElement(conditionalEl);
-      const classDetails = this.getMatchDetailsFromClass(conditionalClass);
+    elements.forEach((element) => {
+      const sourceFieldName = getComponentAttribute(element, "show", "field");
+      const sourceFieldValue = getComponentAttribute(element, "show", "value");
 
-      //If no match or the match is not the current field, skip
-      if (!classDetails || classDetails.fieldName !== fieldName) return;
+      if (sourceFieldName !== fieldName) return;
 
-      if (classDetails.fieldValue === fieldValue) {
-        conditionalEl.classList.remove("enx-hidden");
+      if (sourceFieldValue === fieldValue) {
+        log(
+          `showing element with class enx-show[field=${sourceFieldName}][value=${sourceFieldValue}]`
+        );
+        element.classList.remove("enx-hidden");
       } else {
-        conditionalEl.classList.add("enx-hidden");
+        log(
+          `hiding element with class enx-show[field=${sourceFieldName}][value=${sourceFieldValue}]`
+        );
+        element.classList.add("enx-hidden");
       }
     });
-  }
-
-  getConditionalClassFromElement(conditionalEl) {
-    return conditionalEl.className.split(" ").find((className) => className.includes("enx-show:"));
-  }
-
-  getMatchDetailsFromClass(conditionalClass) {
-    //Expecting: enx-show:fieldName[fieldValue]
-    const regex = /enx-show:([^[]+)\[([^[]+)]/g;
-    const match = regex.exec(conditionalClass);
-
-    if (!match) return null;
-
-    return {
-      fieldName: match[1],
-      fieldValue: match[2],
-    };
   }
 
   //--------------------------------------------------------------------------------
@@ -225,5 +214,9 @@ export default class ENXShow {
     setTimeout(() => {
       this.showPaymentType();
     }, 500);
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxShow") !== false;
   }
 }

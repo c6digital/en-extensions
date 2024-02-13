@@ -1,6 +1,10 @@
+import { getComponentAttribute, getElementsOfComponent } from "./helpers";
+
 export default class ENXReadMoreMobile {
   constructor() {
-    this.readMoreSections = document.querySelectorAll("[class*='enx-read-more-mobile']");
+    if (!this.isEnabled()) return;
+
+    this.readMoreSections = getElementsOfComponent("read-more-mobile");
 
     if (this.readMoreSections.length > 0) {
       this.addReadMoreSections();
@@ -10,11 +14,10 @@ export default class ENXReadMoreMobile {
   addReadMoreSections() {
     this.readMoreSections.forEach((section) => {
       // Wrap child elements that will be hidden on mobile with a div "enx-read-more-content-mobile"
-      let numberElsToWrap = /enx-read-more-mobile\[([0-9])]/gi.exec(section.className);
-      numberElsToWrap = numberElsToWrap ? parseInt(numberElsToWrap[1]) : 2;
+      let numberElsToWrap = getComponentAttribute(section, "read-more-mobile", "visible") ?? 2;
       const els = [...section.children].slice(numberElsToWrap);
       const wrapper = document.createElement("div");
-      wrapper.className = "enx-read-more-content-mobile";
+      wrapper.className = "enx-read-more:content-mobile";
       els.forEach((element) => {
         wrapper.appendChild(element);
       });
@@ -23,7 +26,7 @@ export default class ENXReadMoreMobile {
       // Insert "Read more" toggle
       wrapper.insertAdjacentHTML(
         "beforebegin",
-        `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more-toggle-mobile">
+        `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more:toggle">
           Read more
           <svg
             class="rm-icon-normal ml-2"
@@ -62,12 +65,16 @@ export default class ENXReadMoreMobile {
     });
 
     // After sections have all been set up, add event listeners to toggle content.
-    document.querySelectorAll(".enx-read-more-toggle-mobile").forEach((toggle) => {
+    document.querySelectorAll(".enx-read-more\\:toggle").forEach((toggle) => {
       toggle.addEventListener("click", () => {
         toggle
           .closest('[class*="enx-read-more-mobile"]')
-          .classList.toggle("enx-read-more-mobile--open");
+          .classList.toggle("enx-read-more-mobile:open");
       });
     });
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxReadMoreMobile") !== false;
   }
 }

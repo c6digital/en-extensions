@@ -12,13 +12,18 @@
     disableSubmitButton: () => disableSubmitButton,
     displayDonationAmt: () => displayDonationAmt,
     enableSubmitButton: () => enableSubmitButton,
+    getComponentAttribute: () => getComponentAttribute,
+    getComponentAttributes: () => getComponentAttributes,
     getCurrency: () => getCurrency,
     getCurrencySymbol: () => getCurrencySymbol,
     getDataFromStorage: () => getDataFromStorage,
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
     getENValidators: () => getENValidators,
+    getElementsOfComponent: () => getElementsOfComponent,
+    getElementsWithComponentAttribute: () => getElementsWithComponentAttribute,
     getEnPageLocale: () => getEnPageLocale,
+    getFirstElementWithComponentAttribute: () => getFirstElementWithComponentAttribute,
     getMPData: () => getMPData,
     getMPPhotoUrl: () => getMPPhotoUrl,
     getNextPageUrl: () => getNextPageUrl,
@@ -30,6 +35,7 @@
     saveFieldValueToSessionStorage: () => saveFieldValueToSessionStorage,
     setENFieldValue: () => setENFieldValue,
     shuffleArray: () => shuffleArray,
+    transformEnxClassesToDataAttributes: () => transformEnxClassesToDataAttributes,
     updateCurrentYear: () => updateCurrentYear,
     updateNextPageUrl: () => updateNextPageUrl,
     validateVisibleFields: () => validateVisibleFields
@@ -208,27 +214,138 @@
       button.querySelector(".submit-spinner")?.remove();
     });
   }
+  function transformEnxClassesToDataAttributes(selector = "[class*='enx-']") {
+    let elements;
+    if (typeof selector instanceof NodeList) {
+      elements = selector;
+    } else if (selector instanceof HTMLElement) {
+      elements = [selector];
+    } else {
+      elements = document.querySelectorAll(selector);
+    }
+    elements.forEach((element) => {
+      const classes = element.className.split(" ");
+      let dataAttributes = null;
+      classes.forEach((className) => {
+        if (!className.includes("enx-"))
+          return;
+        dataAttributes = dataAttributes || [];
+        const parts = className.split(/[\[\]]/).filter(Boolean);
+        const componentName = parts[0].split(":")[0];
+        const attributes = {};
+        for (let i2 = 1; i2 < parts.length; i2++) {
+          const [key, value] = parts[i2].split("=");
+          attributes[key] = value;
+        }
+        const componentDataAttribute = dataAttributes.find(
+          (data) => data.componentName === componentName
+        );
+        if (componentDataAttribute) {
+          componentDataAttribute.attributes.push(attributes);
+        } else {
+          dataAttributes.push({
+            componentName,
+            attributes: Object.keys(attributes).length > 0 ? [attributes] : []
+          });
+        }
+      });
+      if (!dataAttributes)
+        return;
+      dataAttributes.forEach((data) => {
+        const attributeData = data.attributes.length > 0 ? JSON.stringify(data.attributes) : "";
+        element.setAttribute(`data-${data.componentName}`, attributeData);
+        log(`Data attribute set "data-${data.componentName}" = ${attributeData}`);
+      });
+    });
+  }
+  function getElementsOfComponent(component) {
+    return document.querySelectorAll(`[data-enx-${component}]`);
+  }
+  function getComponentAttributes(element, component) {
+    const attributeValue = element.getAttribute(`data-enx-${component}`);
+    if (!attributeValue)
+      return null;
+    try {
+      return JSON.parse(attributeValue);
+    } catch (e2) {
+      log(`Error parsing JSON "${attributeValue}" for "enx-${component}"`);
+      return [];
+    }
+  }
+  function getComponentAttribute(element, component, attribute) {
+    const attributes = getComponentAttributes(element, component);
+    if (attributes) {
+      return attributes[0][attribute] || null;
+    }
+    return null;
+  }
+  function getElementsWithComponentAttribute(componentName, attributeName, attributeValue = null) {
+    const elements = getElementsOfComponent(componentName);
+    return [...elements].filter((el) => {
+      const attributeData = getComponentAttributes(el, componentName);
+      if (attributeValue) {
+        return attributeData ? attributeData.some((obj) => obj[attributeName] === attributeValue) : false;
+      } else {
+        return attributeData ? attributeData.some((obj) => obj[attributeName]) : false;
+      }
+    });
+  }
+  function getFirstElementWithComponentAttribute(componentName, attributeName, attributeValue = null) {
+    return getElementsWithComponentAttribute(componentName, attributeName, attributeValue)[0];
+  }
+
+  // src/default-config.js
+  var defaultConfig = {
+    debug: new URLSearchParams(window.location.search).has("debug"),
+    enxCloak: true,
+    enxConvert: true,
+    enxDonate: true,
+    enxEmailTarget: true,
+    enxHtml: true,
+    enxModel: true,
+    enxMultiStepForm: true,
+    enxProxyFields: true,
+    enxReadMoreMobile: true,
+    enxShare: true,
+    enxShow: true,
+    enxText: true,
+    enxTweetTarget: true,
+    enxValidate: {
+      removeErrorsOnInput: true,
+      sortCodeField: "supporter.bankRoutingNumber",
+      accountNumberField: "supporter.bankAccountNumber"
+    },
+    beforeInit: () => {
+    },
+    beforeCloakRemoval: () => {
+    },
+    afterInit: () => {
+    }
+  };
 
   // src/enx-model.js
   var ENXModel = class {
     constructor() {
-      this.bindTargets = [...document.querySelectorAll("[class*='enx-model:']")];
-      if (this.shouldRun()) {
+      if (!this.isEnabled())
+        return;
+      this.bindTargets = [...getElementsOfComponent("model")];
+      if (this.bindTargets.length > 0) {
         this.run();
       }
     }
-    shouldRun() {
-      return this.bindTargets.length > 0;
+    isEnabled() {
+      return ENX.getConfigValue("enxModel") !== false;
     }
     run() {
-      const bindSources = this.bindTargets.map((element) => {
-        return element.classList.value.split("enx-model:")[1].split(" ")[0];
+      const bindSources = this.bindTargets.map((el) => {
+        const attr = getComponentAttributes(el, "model");
+        return attr[0].source;
       });
       const uniqueBindSources = [...new Set(bindSources)];
       uniqueBindSources.forEach((bindSource) => {
         const inputs = [...document.querySelectorAll(`[name="${bindSource}"]`)];
         inputs.forEach((input) => {
-          input.addEventListener("change", () => {
+          input.addEventListener("input", () => {
             this.updateTargetsWithSourceValue(bindSource);
           });
           this.updateTargetsWithSourceValue(bindSource);
@@ -236,11 +353,9 @@
       });
     }
     updateTargetsWithSourceValue(sourceFieldName) {
-      const className = CSS.escape(`enx-model:${sourceFieldName}`);
-      const elements = [...document.querySelectorAll(`.${className}`)];
-      const value = getENFieldValue(sourceFieldName);
+      const elements = getElementsWithComponentAttribute("model", "source", sourceFieldName);
       elements.forEach((element) => {
-        element.textContent = value;
+        element.textContent = getENFieldValue(sourceFieldName);
       });
     }
   };
@@ -248,13 +363,15 @@
   // src/enx-proxy-fields.js
   var ENXProxyFields = class {
     constructor(proxies = []) {
+      if (!this.isEnabled())
+        return;
       this.proxies = [...proxies, ...this.getProxyFieldsFromLabels()];
-      if (this.shouldRun()) {
+      if (this.proxies.length > 0) {
         this.activateProxyFields();
       }
     }
-    shouldRun() {
-      return this.proxies.length > 0;
+    isEnabled() {
+      return ENX.getConfigValue("enxProxyFields") !== false;
     }
     getProxyFieldsFromLabels() {
       const proxyFields = [];
@@ -262,7 +379,7 @@
       labels.forEach((label) => {
         const labelText = label.textContent;
         if (labelText.includes("enx-proxy[")) {
-          let source = /enx-proxy\[(.*)]/gi.exec(labelText);
+          let source = /enx-proxy\[source=(.*)]/gi.exec(labelText);
           const target = document.getElementById(label.getAttribute("for"))?.getAttribute("name");
           if (source && target) {
             proxyFields.push({
@@ -304,20 +421,30 @@
   // src/enx-cloak.js
   var ENXCloak = class {
     constructor() {
-      document.querySelectorAll(".enx-cloak").forEach((element) => {
-        element.classList.remove("enx-cloak");
-      });
+      if (!this.isEnabled())
+        return;
+      const elements = getElementsOfComponent("cloak");
+      if (elements) {
+        elements.forEach((el) => {
+          el.classList.remove("enx-cloak");
+        });
+      }
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxCloak") !== false;
     }
   };
 
   // src/enx-multi-step-form.js
   var ENXMultiStepForm = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
+      if (!this.shouldRun())
+        return;
       this.currentStep = 0;
       this.multistepTabs = [];
-      if (this.shouldRun()) {
-        this.init();
-      }
+      this.init();
     }
     init() {
       this.resetTabs();
@@ -325,81 +452,73 @@
       this.onBackButton();
       this.onClick();
     }
+    isEnabled() {
+      return ENX.getConfigValue("enxMultiStepForm") !== false;
+    }
     shouldRun() {
-      return !!document.querySelector(".enx-multistep");
+      return !!document.querySelector("[class*='enx-multistep']");
     }
     resetTabs() {
       this.currentStep = 0;
-      const multistepTabNames = [
-        ...document.querySelectorAll(".enx-multistep[class*='enx-multistep-name--']")
-      ].map(
-        (tab) => tab.className.match(/enx-multistep-name--[a-z]*/gi)[0].replace("enx-multistep-name--", "")
-      );
-      this.multistepTabs = [...new Set(multistepTabNames)];
+      this.multistepTabs = [...getElementsOfComponent("multistep")].map((tab) => {
+        return getComponentAttribute(tab, "multistep", "name");
+      }).filter(Boolean);
     }
     // Via Direct URL hit
     onUrlHit() {
-      const urlParams = new URLSearchParams(location.href);
-      if (document.querySelectorAll(".enx-multistep-force-start").length && !urlParams.has("override-force-multistep")) {
-        this.changeStep(".enx-multistep-force-start");
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceStartEl = getFirstElementWithComponentAttribute("multistep", "force-start", "true");
+      if (forceStartEl && !urlParams.has("enx-multistep-override-force")) {
+        this.changeStep(forceStartEl);
         history.pushState(null, "", "#");
         this.log("URL", "Show Landing page");
         return;
       }
       if (window.location.hash) {
         const destination = location.hash.replace("#", "");
-        if (document.querySelectorAll(".enx-multistep-name--" + destination).length) {
-          this.changeStep(".enx-multistep-name--" + destination);
+        const stepFromHash = getFirstElementWithComponentAttribute("multistep", "name", destination);
+        if (stepFromHash) {
+          this.changeStep(stepFromHash);
           this.log("URL", 'Show "' + location.hash + '"');
           this.setStep(destination);
-        } else {
-          const spaElements = document.querySelectorAll(".enx-multistep");
-          if ([...spaElements].some((element) => element.className.match(/show:/))) {
-            window.location = window.location.href.split("#")[0];
-          } else {
-            this.changeStep(document.querySelector(".enx-multistep"));
-          }
+          return;
         }
-        return;
       }
-      this.changeStep(document.querySelector(".enx-multistep"));
+      this.changeStep(getFirstElementWithComponentAttribute("multistep", "name"));
     }
     onBackButton() {
       window.onpopstate = (event) => {
         if (event.state) {
-          this.changeStep(".enx-multistep-name--" + event.state.page);
+          this.changeStep(
+            getFirstElementWithComponentAttribute("multistep", "name", event.state.page)
+          );
           this.log("Browser", 'Show "' + event.state.page + '"');
           this.setStep(event.state.page);
         } else {
-          const spaElements = document.querySelectorAll(".enx-multistep");
-          if ([...spaElements].some((element) => element.className.match(/show:/))) {
-            location.reload();
-          } else {
-            this.changeStep(".enx-multistep");
-            this.log("Browser", "Show Landing page");
-            this.setStep(this.multistepTabs[0]);
-          }
+          this.changeStep(getFirstElementWithComponentAttribute("multistep", "name"));
+          this.log("Browser", "Show Landing page");
+          this.setStep(this.multistepTabs[0]);
         }
       };
     }
     onClick() {
-      const multistepButtons = document.querySelectorAll("[enx-multistep-destination]");
+      const multistepButtons = getElementsWithComponentAttribute("multistep", "destination");
       multistepButtons.forEach((button) => {
-        button.addEventListener("click", (event) => {
-          const destination = event.target.getAttribute("enx-multistep-destination");
+        button.addEventListener("click", () => {
+          const destination = getComponentAttribute(button, "multistep", "destination");
           const destinationIndex = this.multistepTabs.indexOf(destination);
-          const validate = !event.target.hasAttribute("no-validate") && this.currentStep < destinationIndex;
+          const validate = !getComponentAttribute(button, "multistep", "no-validate") && this.currentStep < destinationIndex;
           if (this.currentStep === destinationIndex || validate && destinationIndex > this.currentStep + 1)
             return;
           if (validate && !validateVisibleFields()) {
             window.dispatchEvent(
-              new CustomEvent("onEnxMultistepError", {
+              new CustomEvent("enx-multistep:error", {
                 detail: this.multistepTabs[this.currentStep].className
               })
             );
             return;
           }
-          this.changeStep(".enx-multistep-name--" + destination);
+          this.changeStep(getFirstElementWithComponentAttribute("multistep", "name", destination));
           this.log("App", 'Show "' + destination + '"');
           window.dispatchEvent(
             new CustomEvent("enx-multistep:page-view", {
@@ -422,14 +541,14 @@
       this.hideAndShow(this.multistepTabs[this.currentStep], step);
     }
     hideAndShow(hide, show) {
-      const currentTab = document.querySelector(`.enx-multistep-name--${hide}`);
+      const currentTab = getFirstElementWithComponentAttribute("multistep", "name", hide);
       if (currentTab) {
-        currentTab.classList.remove("enx-multistep-active");
+        currentTab.classList.remove("enx-multistep:active");
       }
       window.scrollTo({ top: 0, behavior: "smooth" });
       const nextTabEl = show instanceof Element ? show : document.querySelector(show);
       if (nextTabEl) {
-        nextTabEl.classList.add("enx-multistep-active");
+        nextTabEl.classList.add("enx-multistep:active");
       }
     }
     setStep(destination) {
@@ -450,45 +569,36 @@
       console.log("Client:	", client);
       console.log("Action:	", action);
     }
-    moveToFirstFailedSpa() {
-      const lastFailedValidation = document.querySelector(".en__field--validationFailed");
-      const failSpa = lastFailedValidation && lastFailedValidation.closest(".enx-multistep");
-      if (!failSpa)
-        return;
-      const tabValidated = Array.from(failSpa.classList).find(
-        (s2) => s2.includes("enx-multistep-name--")
-      );
-      tabValidated && this.changeStep("." + tabValidated);
-    }
   };
 
   // src/enx-show.js
   var ENXShow = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
       this.init();
       this.legacyFunctionality();
     }
     init() {
-      document.querySelectorAll('[class*="enx-show:"]').forEach((conditionalEl) => {
-        const conditionalClass = this.getConditionalClassFromElement(conditionalEl);
-        const classDetails = this.getMatchDetailsFromClass(conditionalClass);
-        if (!classDetails)
-          return;
-        const inputs = document.getElementsByName(classDetails.fieldName);
+      const elements = getElementsOfComponent("show");
+      elements.forEach((element) => {
+        const sourceFieldName = getComponentAttribute(element, "show", "field");
+        const sourceFieldValue = getComponentAttribute(element, "show", "value");
+        const inputs = document.getElementsByName(sourceFieldName);
         if (inputs.length === 0) {
-          conditionalEl.classList.add("enx-hidden");
+          element.classList.add("enx-hidden");
         }
         inputs.forEach((input) => {
           if (input.type === "radio" || input.type === "checkbox") {
-            if (input.value === classDetails.fieldValue && input.checked) {
-              conditionalEl.classList.remove("enx-hidden");
+            if (input.value === sourceFieldValue && input.checked) {
+              element.classList.remove("enx-hidden");
             } else {
-              conditionalEl.classList.add("enx-hidden");
+              element.classList.add("enx-hidden");
             }
-          } else if (input.value === classDetails.fieldValue) {
-            conditionalEl.classList.remove("enx-hidden");
+          } else if (input.value === sourceFieldValue) {
+            element.classList.remove("enx-hidden");
           } else {
-            conditionalEl.classList.add("enx-hidden");
+            element.classList.add("enx-hidden");
           }
         });
       });
@@ -505,31 +615,24 @@
       if (fieldName === "transaction.donationAmt.other") {
         fieldName = "transaction.donationAmt";
       }
-      const conditionalEls = document.querySelectorAll('[class*="enx-show:"]');
-      conditionalEls.forEach((conditionalEl) => {
-        const conditionalClass = this.getConditionalClassFromElement(conditionalEl);
-        const classDetails = this.getMatchDetailsFromClass(conditionalClass);
-        if (!classDetails || classDetails.fieldName !== fieldName)
+      const elements = getElementsOfComponent("show");
+      elements.forEach((element) => {
+        const sourceFieldName = getComponentAttribute(element, "show", "field");
+        const sourceFieldValue = getComponentAttribute(element, "show", "value");
+        if (sourceFieldName !== fieldName)
           return;
-        if (classDetails.fieldValue === fieldValue) {
-          conditionalEl.classList.remove("enx-hidden");
+        if (sourceFieldValue === fieldValue) {
+          log(
+            `showing element with class enx-show[field=${sourceFieldName}][value=${sourceFieldValue}]`
+          );
+          element.classList.remove("enx-hidden");
         } else {
-          conditionalEl.classList.add("enx-hidden");
+          log(
+            `hiding element with class enx-show[field=${sourceFieldName}][value=${sourceFieldValue}]`
+          );
+          element.classList.add("enx-hidden");
         }
       });
-    }
-    getConditionalClassFromElement(conditionalEl) {
-      return conditionalEl.className.split(" ").find((className) => className.includes("enx-show:"));
-    }
-    getMatchDetailsFromClass(conditionalClass) {
-      const regex = /enx-show:([^[]+)\[([^[]+)]/g;
-      const match = regex.exec(conditionalClass);
-      if (!match)
-        return null;
-      return {
-        fieldName: match[1],
-        fieldValue: match[2]
-      };
     }
     //--------------------------------------------------------------------------------
     //Below is legacy functionality for backwards compatibility
@@ -642,11 +745,16 @@
         this.showPaymentType();
       }, 500);
     }
+    isEnabled() {
+      return ENX.getConfigValue("enxShow") !== false;
+    }
   };
 
   // src/enx-share.js
   var ENXShare = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
       this.svgUrl = "https://storage.c6-digital.net/en-components/img/share-icons/";
       this.shareLabels = {
         en: "Share on",
@@ -658,25 +766,25 @@
       this.customShareSettings = {
         facebook: {
           url: "https://www.facebook.com/sharer/sharer.php?u=",
-          msgSelector: ".social-share-fb",
-          btnSelector: ".custom-share-settings.facebook-button"
+          msgSelector: "[class*='enx-share:facebook-link']",
+          btnSelector: "[class*='enx-share:facebook-button']"
         },
         twitter: {
           url: "https://twitter.com/intent/tweet?text=",
-          msgSelector: ".social-share-tw",
-          btnSelector: ".custom-share-settings.twitter-button"
+          msgSelector: "[class*='enx-share:twitter-msg']",
+          btnSelector: "[class*='enx-share:twitter-button']"
         },
         whatsapp: {
           url: "https://api.whatsapp.com/send?text=",
-          msgSelector: ".social-share-wa",
-          btnSelector: ".custom-share-settings.whatsapp-button"
+          msgSelector: "[class*='enx-share:whatsapp-msg']",
+          btnSelector: "[class*='enx-share:whatsapp-button']"
         },
         email: {
           subjectUrl: "mailto:?subject=",
-          subjectSelector: ".social-share-em-subject",
+          subjectSelector: "[class*='enx-share:email-subject']",
           bodyUrl: "&body=",
-          bodySelector: ".social-share-em-body",
-          btnSelector: ".custom-share-settings.email-button"
+          bodySelector: "[class*='enx-share:email-body']",
+          btnSelector: "[class*='enx-share:email-button']"
         }
       };
       this.makeShareButtons();
@@ -721,17 +829,17 @@
       );
     }
     hasNativeShareLink() {
-      return !!document.querySelector(".social-share-native-link");
+      return !!document.querySelector("[class*='enx-share:native-link']");
     }
     addNativeShareElement() {
-      const shareEl = document.querySelector(".social-share-native-link");
-      const shareTitle = document.querySelector(".social-share-native-title");
-      const shareDescription = document.querySelector(".social-share-native-description");
+      const shareEl = document.querySelector("[class*='enx-share:native-link']");
+      const shareTitle = document.querySelector("[class*='enx-share:native-title']");
+      const shareDescription = document.querySelector("[class*='enx-share:native-description']");
       if ("navigator" in window && "share" in window.navigator) {
         const shareButtonEl = document.createElement("button");
         shareButtonEl.setAttribute("type", "button");
         shareButtonEl.setAttribute("aria-label", "Share");
-        shareButtonEl.classList.add("social-share-native-button");
+        shareButtonEl.classList.add("enx-share:native-button");
         shareButtonEl.textContent = "Share";
         shareEl.appendChild(shareButtonEl);
         shareButtonEl.addEventListener("click", () => {
@@ -750,7 +858,7 @@
         const copyButtonEl = document.createElement("button");
         copyButtonEl.setAttribute("type", "button");
         copyButtonEl.setAttribute("aria-label", "Copy");
-        copyButtonEl.classList.add("social-share-native-button");
+        copyButtonEl.classList.add("enx-share:native-button");
         copyButtonEl.textContent = "Copy";
         shareEl.appendChild(copyButtonEl);
         copyButtonEl.addEventListener("click", () => {
@@ -788,30 +896,34 @@
         }
       });
     }
+    isEnabled() {
+      return ENX.getConfigValue("enxShare") !== false;
+    }
   };
 
   // src/enx-read-more-mobile.js
   var ENXReadMoreMobile = class {
     constructor() {
-      this.readMoreSections = document.querySelectorAll("[class*='enx-read-more-mobile']");
+      if (!this.isEnabled())
+        return;
+      this.readMoreSections = getElementsOfComponent("read-more-mobile");
       if (this.readMoreSections.length > 0) {
         this.addReadMoreSections();
       }
     }
     addReadMoreSections() {
       this.readMoreSections.forEach((section) => {
-        let numberElsToWrap = /enx-read-more-mobile\[([0-9])]/gi.exec(section.className);
-        numberElsToWrap = numberElsToWrap ? parseInt(numberElsToWrap[1]) : 2;
+        let numberElsToWrap = getComponentAttribute(section, "read-more-mobile", "visible") ?? 2;
         const els = [...section.children].slice(numberElsToWrap);
         const wrapper = document.createElement("div");
-        wrapper.className = "enx-read-more-content-mobile";
+        wrapper.className = "enx-read-more:content-mobile";
         els.forEach((element) => {
           wrapper.appendChild(element);
         });
         section.appendChild(wrapper);
         wrapper.insertAdjacentHTML(
           "beforebegin",
-          `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more-toggle-mobile">
+          `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more:toggle">
           Read more
           <svg
             class="rm-icon-normal ml-2"
@@ -848,55 +960,78 @@
         </a>`
         );
       });
-      document.querySelectorAll(".enx-read-more-toggle-mobile").forEach((toggle) => {
+      document.querySelectorAll(".enx-read-more\\:toggle").forEach((toggle) => {
         toggle.addEventListener("click", () => {
-          toggle.closest('[class*="enx-read-more-mobile"]').classList.toggle("enx-read-more-mobile--open");
+          toggle.closest('[class*="enx-read-more-mobile"]').classList.toggle("enx-read-more-mobile:open");
         });
       });
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxReadMoreMobile") !== false;
     }
   };
 
   // src/enx-text.js
   var ENXText = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
       this.run();
     }
     run() {
-      const textEls = document.querySelectorAll("[class*='enx-text:']");
-      if (textEls.length > 0) {
-        textEls.forEach((el) => {
-          const className = el.classList.value.split("enx-text:")[1].split(" ")[0];
-          const sourceEl = document.querySelector(`.${className}`);
-          if (sourceEl) {
-            el.textContent = sourceEl.textContent;
+      const elements = getElementsOfComponent("text");
+      if (elements.length > 0) {
+        elements.forEach((el) => {
+          const config = getComponentAttributes(el, "text");
+          if (config) {
+            config.forEach((attr) => {
+              const sourceEl = document.querySelector(`.${attr.source}`);
+              if (sourceEl) {
+                el.textContent = sourceEl.textContent;
+              }
+            });
           }
         });
       }
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxText") !== false;
     }
   };
 
   // src/enx-html.js
   var ENXHtml = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
       this.run();
     }
     run() {
-      const htmlEls = document.querySelectorAll("[class*='enx-html:']");
-      if (htmlEls.length > 0) {
-        htmlEls.forEach((el) => {
-          const className = el.classList.value.split("enx-html:")[1].split(" ")[0];
-          const sourceEl = document.querySelector(`.${className}`);
-          if (sourceEl) {
-            el.innerHTML = sourceEl.innerHTML;
+      const elements = getElementsOfComponent("html");
+      if (elements.length > 0) {
+        elements.forEach((el) => {
+          const config = getComponentAttributes(el, "html");
+          if (config) {
+            config.forEach((attr) => {
+              const sourceEl = document.querySelector(`.${attr.source}`);
+              if (sourceEl) {
+                el.innerHTML = sourceEl.innerHTML;
+              }
+            });
           }
         });
       }
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxHtml") !== false;
     }
   };
 
   // src/enx-email-target.js
   var ENXEmailTarget = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
       this.addPhotoOfMP();
     }
     addPhotoOfMP() {
@@ -907,30 +1042,58 @@
         img.src = await getMPPhotoUrl(img.dataset.mpName, img.dataset.mpLocation);
       });
     }
+    isEnabled() {
+      return ENX.getConfigValue("enxEmailTarget") !== false;
+    }
   };
 
   // src/enx-tweet-target.js
   var ENXTweetTarget = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
+      if (!this.shouldRun())
+        return;
       this.currentTweet = 0;
       this.tweetTextarea = document.querySelector(".en__tweet textarea");
       this.tweets = [];
-      if (document.querySelector(".ttt--custom-tweets")) {
+      const tweetTargetEl = [...getElementsOfComponent("tweet-target")].find((el) => {
+        return !el.classList.contains("enx-tweet-target:custom-tweets");
+      });
+      if (!tweetTargetEl) {
+        log("No tweet target main element found, not running TweetTarget");
+        return;
+      }
+      const defaultConfig2 = {
+        "custom-tweets": true,
+        "mp-photo": true,
+        "hide-background-tab": true,
+        "hide-sent-btn": true,
+        "show-target-profile": true,
+        "redirect-on-tweet": true
+      };
+      const componentAttrs = getComponentAttributes(tweetTargetEl, "tweet-target");
+      const componentConfig = componentAttrs ? componentAttrs[0] : {};
+      const config = {
+        ...defaultConfig2,
+        ...componentConfig
+      };
+      if (config["custom-tweets"] === true) {
         this.customTweets();
       }
-      if (document.querySelector(".ttt--mp-picture")) {
+      if (config["mp-photo"] === true) {
         this.setMPPhoto();
       }
-      if (document.querySelector(".ttt--hide-background-tab")) {
+      if (config["hide-background-tab"] === true) {
         this.hideBackgroundTab();
       }
-      if (document.querySelector(".ttt--hide-sent-btn")) {
+      if (config["hide-sent-btn"] === true) {
         this.hideSentBtn();
       }
-      if (document.querySelector(".ttt--hide-target-profile")) {
+      if (config["show-target-profile"] !== true) {
         this.hideTargetProfile();
       }
-      if (document.querySelector(".ttt--redirect-on-tweet")) {
+      if (config["redirect-on-tweet"] === true) {
         this.redirectOnTweet();
       }
     }
@@ -962,6 +1125,12 @@
       img.src = await getMPPhotoUrl(mpJson.name, mpJson.location);
     }
     customTweets() {
+      if (document.querySelectorAll(
+        "[class*='enx-tweet-target:custom-tweets'] .en__component--copyblock"
+      ).length === 0) {
+        log("No custom tweets found, not running customTweets");
+        return;
+      }
       this.getCustomTweets();
       this.addNewTweetBtn();
     }
@@ -969,7 +1138,7 @@
       const targetTwitterHandle = document.querySelector(".en__twitterTarget__handle").textContent;
       const tweets = [
         ...document.querySelectorAll(
-          ".ttt--custom-tweets .en__component--copyblock, .en__tweet textarea"
+          "[class*='enx-tweet-target:custom-tweets'] .en__component--copyblock, .en__tweet textarea"
         )
       ].map((tweet) => tweet.textContent.replace("{twitter_handle}", targetTwitterHandle).trim());
       this.tweets = shuffleArray(tweets);
@@ -986,7 +1155,7 @@
           padding-top: 35px;
         }
 
-        .new-tweet-btn {
+        .enx-tweet-target\\:new-tweet-btn {
           background-color: transparent;
           border: none;
           padding: 0;
@@ -1018,10 +1187,12 @@
       `
       );
       const tweetArea = document.querySelector(".en__tweet");
-      const newTweetBtn = `<button class="new-tweet-btn" type="button"><svg class="new-tweet-svg" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg></button>`;
+      const newTweetBtn = `<button class="enx-tweet-target:new-tweet-btn" type="button"><svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg></button>`;
       tweetArea.insertAdjacentHTML("beforeend", newTweetBtn);
-      const newBtnEl = document.querySelector(".en__tweet > .new-tweet-btn");
-      const svg = document.querySelector(".en__tweet .new-tweet-svg");
+      const newBtnEl = document.querySelector(
+        ".en__tweet > [class*='enx-tweet-target:new-tweet-btn']"
+      );
+      const svg = newBtnEl.querySelector("svg");
       newBtnEl.addEventListener("click", () => {
         svg.classList.add("spin");
         setTimeout(() => {
@@ -1034,11 +1205,19 @@
         this.currentTweet++;
       });
     }
+    shouldRun() {
+      return !!document.querySelector("[class*='enx-tweet-target']");
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxTweetTarget") !== false;
+    }
   };
 
   // src/enx-donate.js
   var ENXDonate = class {
     constructor() {
+      if (!this.isEnabled())
+        return;
       this.removeEmptyDecimalFromTotalAmountSpans();
       this.addCurrencyToDonationOther();
     }
@@ -1061,6 +1240,9 @@
     }
     addCurrencyToDonationOther() {
       document.querySelector(".en__field--donationAmt .en__field__item--other")?.classList.add("amount-currency--" + getCurrency());
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxDonate") !== false;
     }
   };
 
@@ -1184,25 +1366,25 @@
     }({ value: e2, delimiter: void 0 === i2 ? "," : i2, numeralIntegerScale: void 0 === a2 ? 0 : a2, numeralDecimalMark: void 0 === l2 ? "." : l2, numeralDecimalScale: void 0 === u2 ? 2 : u2, stripLeadingZeroes: void 0 === c2 || c2, numeralPositiveOnly: void 0 !== s2 && s2, numeralThousandsGroupStyle: void 0 === n2 ? x : n2, tailPrefix: void 0 !== o && o, signBeforePrefix: void 0 !== d2 && d2, prefix: void 0 === m2 ? "" : m2 });
   };
 
-  // src/enx-live-validation.js
-  var ENXLiveValidation = class {
-    constructor(config) {
+  // src/enx-validate.js
+  var ENXValidate = class {
+    constructor(config = false) {
+      if (!this.isEnabled())
+        return;
       this.config = config;
-      if (this.shouldRun()) {
-        this.email();
-        this.creditCard();
-        this.cvv();
-        this.sortCode(this.config.sortCodeField);
-        this.accountNumber(this.config.accountNumberField);
-        this.amountOther();
-        this.noSpaces(".validate-no-spaces");
-        if (this.config.removeErrorsOnInput) {
-          this.removeErrorsOnInput();
-        }
+      this.email();
+      this.creditCard();
+      this.cvv();
+      this.sortCode(this.config.sortCodeField);
+      this.accountNumber(this.config.accountNumberField);
+      this.amountOther();
+      this.noSpaces('enx-validate[rule="no-spaces"]');
+      if (this.config.removeErrorsOnInput) {
+        this.removeErrorsOnInput();
       }
     }
-    shouldRun() {
-      return this.config.enabled;
+    isEnabled() {
+      return ENX.getConfigValue("enxValidate") !== false;
     }
     email(field = "#en__field_supporter_emailAddress") {
       this.noSpaces(field);
@@ -1301,25 +1483,142 @@
     }
   };
 
-  // src/enx.js
-  var ENX = class {
-    constructor(config = {}) {
-      const defaultConfig = {
-        debug: new URLSearchParams(window.location.search).has("debug"),
-        proxies: [],
-        liveValidation: {
-          enabled: true,
-          removeErrorsOnInput: true,
-          sortCodeField: "supporter.bankRoutingNumber",
-          accountNumberField: "supporter.bankAccountNumber"
-        },
-        beforeInit: () => {
-        },
-        beforeCloakRemoval: () => {
-        },
-        afterInit: () => {
+  // src/enx-convert.js
+  var ENXConvert = class {
+    constructor() {
+      if (!this.isEnabled())
+        return;
+      if (!window.pageJson) {
+        log("No pageJson found, not running ENXConvert");
+        return false;
+      }
+      this.pages = this.getPagesLog();
+      this.previousPage = this.pages[this.pages.length - 1] || null;
+      this.currentPage = new Page(window.pageJson);
+      this.updatePagesLog();
+      if (this.hasAlreadyConverted() || window.hasOwnProperty("ENConversion_DontConvert") && window.ENConversion_DontConvert === true) {
+        return;
+      }
+      if (window.hasOwnProperty("ENConversion_Convert") && window.ENConversion_Convert === true) {
+        this.convert();
+        return;
+      }
+      this.checkForConversion();
+    }
+    checkForConversion() {
+      if (
+        //last page of multiple pages without a redirect
+        this.currentPage.isLastPage() && this.currentPage.hasMoreThanOnePage() && !this.currentPage.hasRedirect()
+      ) {
+        this.convert();
+      } else if (
+        //single page with redirect
+        this.currentPage.isSinglePage() && this.currentPage.hasRedirect()
+      ) {
+        this.convert();
+      }
+    }
+    convert() {
+      sessionStorage.setItem(
+        "ENConversion_Converted_" + this.currentPage.pageJson.campaignId,
+        "true"
+      );
+      log("ENXConvert: Converted");
+      this.dispatchEvents();
+    }
+    dispatchEvents = function() {
+      let groupEventName;
+      switch (this.currentPage.pageJson.pageType) {
+        case "donation":
+        case "premiumgift":
+        case "e-commerce":
+          groupEventName = "donation";
+          break;
+        default:
+          groupEventName = "submission";
+          break;
+      }
+      const generalEvent = new Event("synthetic-en:conversion", { bubbles: true });
+      const pageEvent = new Event("synthetic-en:conversion:" + this.currentPage.pageJson.pageType, {
+        bubbles: true
+      });
+      const groupEvent = new Event("synthetic-en:conversion:group:" + groupEventName, {
+        bubbles: true
+      });
+      dispatchEvent(generalEvent);
+      dispatchEvent(pageEvent);
+      dispatchEvent(groupEvent);
+    };
+    hasAlreadyConverted() {
+      return sessionStorage.getItem("ENConversion_Converted_" + this.currentPage.pageJson.campaignId) !== null;
+    }
+    getPagesLog() {
+      const pagesData = JSON.parse(sessionStorage.getItem("ENConversion_PagesLog"));
+      if (pagesData === null) {
+        return [];
+      }
+      return pagesData.map(function(pageData) {
+        return new Page(pageData);
+      });
+    }
+    updatePagesLog() {
+      const pages = JSON.parse(sessionStorage.getItem("ENConversion_PagesLog"));
+      if (pages === null) {
+        sessionStorage.setItem("ENConversion_PagesLog", JSON.stringify([this.currentPage.pageJson]));
+      } else {
+        if (!this.currentPage.isSamePageAs(this.previousPage)) {
+          pages.push(this.currentPage.pageJson);
         }
-      };
+        sessionStorage.setItem("ENConversion_PagesLog", JSON.stringify(pages));
+      }
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxConvert") !== false;
+    }
+  };
+  var Page = class {
+    /**
+     * @param {
+     *  {
+     *    pageNumber: number,
+     *    pageCount: number,
+     *    redirectPresent: boolean,
+     *    campaignPageId: number,
+     *    campaignId: number,
+     *    pageType: string
+     *  }
+     * } pageJson
+     */
+    constructor(pageJson) {
+      this.pageJson = pageJson;
+    }
+    isLastPage() {
+      return this.pageJson.pageNumber === this.pageJson.pageCount;
+    }
+    hasMoreThanOnePage() {
+      return this.pageJson.pageCount > 1;
+    }
+    isSinglePage() {
+      return this.pageJson.pageCount === 1;
+    }
+    hasRedirect() {
+      return this.pageJson.redirectPresent;
+    }
+    hasPagesLeft() {
+      return this.pageJson.pageNumber < this.pageJson.pageCount;
+    }
+    /**
+     * A page to compare this page to
+     * @param {Page} page
+     */
+    isSamePageAs(page) {
+      return this.pageJson.campaignPageId === page.pageJson.campaignPageId && this.pageJson.pageNumber === page.pageJson.pageNumber;
+    }
+  };
+
+  // src/enx.js
+  var ENX2 = class {
+    constructor(config = {}) {
       this.config = {
         ...defaultConfig,
         ...config
@@ -1334,6 +1633,7 @@
       this.config.beforeInit();
       this.waitForEnDefaults().then(() => {
         this.enxHelpers = helpers_exports;
+        this.enxHelpers.transformEnxClassesToDataAttributes();
         this.enxModel = new ENXModel();
         this.enxProxyFields = new ENXProxyFields(this.config.proxies);
         this.enxMultiStepForm = new ENXMultiStepForm();
@@ -1345,7 +1645,8 @@
         this.enxEmailTarget = new ENXEmailTarget();
         this.enxTweetTarget = new ENXTweetTarget();
         this.enxDonate = new ENXDonate();
-        this.enxLiveValidation = new ENXLiveValidation(this.config.liveValidation);
+        this.enxValidate = new ENXValidate(this.config.validate);
+        this.enxConvert = new ENXConvert();
         this.config.beforeCloakRemoval();
         this.cloak = new ENXCloak();
         this.config.afterInit();
@@ -1363,9 +1664,12 @@
         checkEnDefaults();
       });
     }
+    static getConfigValue(key) {
+      return window.ENXConfig.hasOwnProperty(key) ? window.ENXConfig[key] : null;
+    }
   };
 
   // src/index.js
-  window.ENX = ENX;
-  var src_default = ENX;
+  window.ENX = ENX2;
+  var src_default = ENX2;
 })();

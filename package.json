@@ -4,9 +4,8 @@
   "description": "Adds extra functionality to Engaging Networks pages",
   "main": "src/enx.js",
   "scripts": {
-    "build": "esbuild src/index.js --bundle --minify --platform=browser --outfile=dist/enx.min.js && esbuild src/index.js --bundle --platform=browser --outfile=dist/enx.js && esbuild --bundle src/styles/index.css --outfile=dist/enx.css && esbuild --bundle src/styles/index.css --outfile=dist/enx.min.css --minify",
-    "watch": "esbuild src/index.js --bundle --platform=browser --outfile=dist/enx.js --watch",
-    "watch-css": "esbuild --bundle src/styles/index.css --outfile=dist/enx.css --watch"
+    "build": "esbuild src/index.js --bundle --minify --platform=browser --outfile=dist/enx.min.js && esbuild src/index.js --bundle --platform=browser --outfile=dist/enx.js",
+    "watch": "esbuild src/index.js --bundle --platform=browser --outfile=dist/enx.js --watch"
   },
   "repository": {
     "type": "git",

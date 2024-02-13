@@ -1,15 +1,15 @@
-body:not(#en__pagebuilder) .social-share-native-title,
-body:not(#en__pagebuilder) .social-share-native-description {
+body:not(#en__pagebuilder) .enx-share\:native-title,
+body:not(#en__pagebuilder) .enx-share\:native-title {
   display: none;
 }
 
-.social-share-native-link {
+.enx-share\:native-link {
   display: flex;
   align-items: stretch;
   margin: 10px 0;
 }
 
-.social-share-native-link p {
+.enx-share\:native-link p {
   margin: 0;
   padding: 8px;
   border: 1px solid #ccc;
@@ -21,7 +21,7 @@ body:not(#en__pagebuilder) .social-share-native-description {
   overflow: hidden;
 }
 
-.social-share-native-link button {
+.enx-share\:native-link button {
   margin-left: 15px;
   border-radius: 5px;
   padding: 8px;
@@ -155,10 +155,10 @@ a.share-preview-link:hover {
 }
 
 /* Share Buttons */
-.facebook-button,
-.twitter-button,
-.whatsapp-button,
-.email-button {
+.enx-share\:facebook-button,
+.enx-share\:twitter-button,
+.enx-share\:whatsapp-button,
+.enx-share\:email-button {
   margin: 0;
   margin-bottom: 15px;
   padding: 17px 49px 17px 21px;
@@ -175,10 +175,10 @@ a.share-preview-link:hover {
 }
 
 /* Share Buttons */
-.facebook-button:after,
-.twitter-button:after,
-.whatsapp-button:after,
-.email-button:after {
+.enx-share\:facebook-button:after,
+.enx-share\:twitter-button:after,
+.enx-share\:whatsapp-button:after,
+.enx-share\:email-button:after {
   content: "";
   width: 34px;
   height: 34px;
@@ -192,28 +192,28 @@ a.share-preview-link:hover {
 }
 
 /* Share Buttons */
-.facebook-button:hover,
-.twitter-button:hover,
-.whatsapp-button:hover,
-.email-button:hover {
+.enx-share\:facebook-button:hover,
+.enx-share\:twitter-button:hover,
+.enx-share\:whatsapp-button:hover,
+.enx-share\:email-button:hover {
   text-decoration: none !important;
   color: black !important;
 }
 
 /* Share Buttons */
-.facebook-button {
+.enx-share\:facebook-button {
   -webkit-box-shadow: 0 2px 0 0 #314f8c;
   box-shadow: 0 2px 0 0 #314f8c;
   background-color: #4267b2;
 }
 
 /* Share Buttons */
-.facebook-button:hover {
+.enx-share\:facebook-button:hover {
   background-color: #7890c1 !important;
 }
 
 /* Share Buttons */
-.facebook-button:after {
+.enx-share\:facebook-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-fb.png?v=1596971649000);
   width: 16px;
   height: 26px;
@@ -222,53 +222,53 @@ a.share-preview-link:hover {
 }
 
 /* Share Buttons */
-.twitter-button {
+.enx-share\:twitter-button {
   background-color: #1da1f2;
   -webkit-box-shadow: 0 2px 0 0 #0c85d0;
   box-shadow: 0 2px 0 0 #0c85d0;
 }
 
 /* Share Buttons */
-.twitter-button:hover {
+.enx-share\:twitter-button:hover {
   background-color: #75c4f5 !important;
 }
 
 /* Share Buttons */
-.twitter-button:after {
+.enx-share\:twitter-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-twitter.png?v=1596971648000);
 }
 
 /* Share Buttons */
-.whatsapp-button {
+.enx-share\:whatsapp-button {
   background-color: #25d366;
   -webkit-box-shadow: 0 2px 0 0 #1da851;
   box-shadow: 0 2px 0 0 #1da851;
 }
 
 /* Share Buttons */
-.whatsapp-button:hover {
+.enx-share\:whatsapp-button:hover {
   background-color: #87dea8 !important;
 }
 
 /* Share Buttons */
-.whatsapp-button:after {
+.enx-share\:whatsapp-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-whatsapp.png?v=1596971648000);
 }
 
 /* Share Buttons */
-.email-button {
+.enx-share\:email-button {
   background-color: #787878;
   -webkit-box-shadow: 0 2px 0 0 #5f5f5f;
   box-shadow: 0 2px 0 0 #5f5f5f;
 }
 
 /* Share Buttons */
-.email-button:hover {
+.enx-share\:email-button:hover {
   background-color: #b5b3b3 !important;
 }
 
 /* Share Buttons */
-.email-button:after {
+.enx-share\:email-button:after {
   background: url(https://aaf1a18515da0e792f78-c27fdabe952dfc357fe25ebf5c8897ee.ssl.cf5.rackcdn.com/375/share-icon-email.png?v=1596971650000);
 }
 
