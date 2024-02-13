@@ -2,6 +2,8 @@ import { getMPPhotoUrl } from "./helpers";
 
 export default class ENXEmailTarget {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.addPhotoOfMP();
   }
 
@@ -13,5 +15,9 @@ export default class ENXEmailTarget {
     imageEls.forEach(async (img) => {
       img.src = await getMPPhotoUrl(img.dataset.mpName, img.dataset.mpLocation);
     });
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxEmailTarget") !== false;
   }
 }

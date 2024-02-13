@@ -15,15 +15,17 @@ import { getENFieldValue, log, setENFieldValue } from "./helpers";
 
 export default class ENXProxyFields {
   constructor(proxies = []) {
+    if (!this.isEnabled()) return;
+
     this.proxies = [...proxies, ...this.getProxyFieldsFromLabels()];
 
-    if (this.shouldRun()) {
+    if (this.proxies.length > 0) {
       this.activateProxyFields();
     }
   }
 
-  shouldRun() {
-    return this.proxies.length > 0;
+  isEnabled() {
+    return ENX.getConfigValue("enxProxyFields") !== false;
   }
 
   getProxyFieldsFromLabels() {

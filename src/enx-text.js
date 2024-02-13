@@ -2,6 +2,8 @@ import { getComponentAttributes, getElementsOfComponent } from "./helpers";
 
 export default class ENXText {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.run();
   }
 
@@ -21,5 +23,9 @@ export default class ENXText {
         }
       });
     }
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxText") !== false;
   }
 }

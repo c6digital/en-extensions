@@ -1,7 +1,9 @@
-import { getComponentAttribute, getComponentAttributes, getElementsOfComponent } from "./helpers";
+import { getComponentAttribute, getElementsOfComponent } from "./helpers";
 
 export default class ENXReadMoreMobile {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.readMoreSections = getElementsOfComponent("read-more-mobile");
 
     if (this.readMoreSections.length > 0) {
@@ -70,5 +72,9 @@ export default class ENXReadMoreMobile {
           .classList.toggle("enx-read-more-mobile:open");
       });
     });
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxReadMoreMobile") !== false;
   }
 }

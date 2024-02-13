@@ -7,11 +7,17 @@ import { getElementsOfComponent } from "./helpers";
  */
 export default class ENXCloak {
   constructor() {
+    if (!this.isEnabled()) return;
+
     const elements = getElementsOfComponent("cloak");
     if (elements) {
       elements.forEach((el) => {
         el.classList.remove("enx-cloak");
       });
     }
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxCloak") !== false;
   }
 }

@@ -2,6 +2,8 @@ import { getComponentAttributes, getElementsOfComponent } from "./helpers";
 
 export default class ENXHtml {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.run();
   }
 
@@ -21,5 +23,9 @@ export default class ENXHtml {
         }
       });
     }
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxHtml") !== false;
   }
 }

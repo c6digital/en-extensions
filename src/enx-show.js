@@ -2,6 +2,8 @@ import { getComponentAttribute, getElementsOfComponent, getENSupporterData, log 
 
 export default class ENXShow {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.init();
     this.legacyFunctionality();
   }
@@ -212,5 +214,9 @@ export default class ENXShow {
     setTimeout(() => {
       this.showPaymentType();
     }, 500);
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxShow") !== false;
   }
 }

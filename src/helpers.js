@@ -319,7 +319,7 @@ export function getElementsOfComponent(component) {
  * Get the attributes of a specific ENX component on an element
  * @param {Element} element The element to get the attributes from
  * @param {string} component The ENX component name
- * @return {Array|null}
+ * @return {Array<Object>}>
  */
 export function getComponentAttributes(element, component) {
   const attributeValue = element.getAttribute(`data-enx-${component}`);
@@ -328,7 +328,7 @@ export function getComponentAttributes(element, component) {
     return JSON.parse(attributeValue);
   } catch (e) {
     log(`Error parsing JSON "${attributeValue}" for "enx-${component}"`);
-    return null;
+    return [];
   }
 }
 

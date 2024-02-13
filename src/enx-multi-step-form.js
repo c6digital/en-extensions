@@ -8,12 +8,12 @@ import {
 
 export default class ENXMultiStepForm {
   constructor() {
+    if (!this.isEnabled()) return;
+    if (!this.shouldRun()) return;
+
     this.currentStep = 0;
     this.multistepTabs = [];
-
-    if (this.shouldRun()) {
-      this.init();
-    }
+    this.init();
   }
 
   init() {
@@ -23,8 +23,12 @@ export default class ENXMultiStepForm {
     this.onClick();
   }
 
+  isEnabled() {
+    return ENX.getConfigValue("enxMultiStepForm") !== false;
+  }
+
   shouldRun() {
-    return !!document.querySelector("[class*='enx-multistep:step']");
+    return !!document.querySelector("[class*='enx-multistep']");
   }
 
   resetTabs() {
@@ -64,7 +68,7 @@ export default class ENXMultiStepForm {
     }
 
     // If nothing else, show the first section.
-    this.changeStep(document.querySelector("[class*='enx-multistep:step']"));
+    this.changeStep(getFirstElementWithComponentAttribute("multistep", "name"));
   }
 
   onBackButton() {

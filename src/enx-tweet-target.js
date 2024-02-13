@@ -1,32 +1,66 @@
-import { getMPPhotoUrl, getNextPageUrl, shuffleArray } from "./helpers";
+import {
+  getComponentAttributes,
+  getElementsOfComponent,
+  getMPPhotoUrl,
+  getNextPageUrl,
+  log,
+  shuffleArray,
+} from "./helpers";
 
 export default class ENXTweetTarget {
   constructor() {
+    if (!this.isEnabled()) return;
+    if (!this.shouldRun()) return;
+
     this.currentTweet = 0;
     this.tweetTextarea = document.querySelector(".en__tweet textarea");
     this.tweets = [];
 
-    if (document.querySelector(".ttt--custom-tweets")) {
+    const tweetTargetEl = [...getElementsOfComponent("tweet-target")].find((el) => {
+      return !el.classList.contains("enx-tweet-target:custom-tweets");
+    });
+
+    if (!tweetTargetEl) {
+      log("No tweet target main element found, not running TweetTarget");
+      return;
+    }
+
+    const defaultConfig = {
+      "custom-tweets": true,
+      "mp-photo": true,
+      "hide-background-tab": true,
+      "hide-sent-btn": true,
+      "show-target-profile": true,
+      "redirect-on-tweet": true,
+    };
+    const componentAttrs = getComponentAttributes(tweetTargetEl, "tweet-target");
+    const componentConfig = componentAttrs ? componentAttrs[0] : {};
+    const config = {
+      ...defaultConfig,
+      ...componentConfig,
+    };
+
+    if (config["custom-tweets"] === true) {
       this.customTweets();
     }
 
-    if (document.querySelector(".ttt--mp-picture")) {
+    if (config["mp-photo"] === true) {
       this.setMPPhoto();
     }
 
-    if (document.querySelector(".ttt--hide-background-tab")) {
+    if (config["hide-background-tab"] === true) {
       this.hideBackgroundTab();
     }
 
-    if (document.querySelector(".ttt--hide-sent-btn")) {
+    if (config["hide-sent-btn"] === true) {
       this.hideSentBtn();
     }
 
-    if (document.querySelector(".ttt--hide-target-profile")) {
+    if (config["show-target-profile"] !== true) {
       this.hideTargetProfile();
     }
 
-    if (document.querySelector(".ttt--redirect-on-tweet")) {
+    if (config["redirect-on-tweet"] === true) {
       this.redirectOnTweet();
     }
   }
@@ -68,6 +102,15 @@ export default class ENXTweetTarget {
   }
 
   customTweets() {
+    if (
+      document.querySelectorAll(
+        "[class*='enx-tweet-target:custom-tweets'] .en__component--copyblock"
+      ).length === 0
+    ) {
+      log("No custom tweets found, not running customTweets");
+      return;
+    }
+
     this.getCustomTweets();
     this.addNewTweetBtn();
   }
@@ -77,7 +120,7 @@ export default class ENXTweetTarget {
 
     const tweets = [
       ...document.querySelectorAll(
-        ".ttt--custom-tweets .en__component--copyblock, .en__tweet textarea"
+        "[class*='enx-tweet-target:custom-tweets'] .en__component--copyblock, .en__tweet textarea"
       ),
     ].map((tweet) => tweet.textContent.replace("{twitter_handle}", targetTwitterHandle).trim());
 
@@ -96,7 +139,7 @@ export default class ENXTweetTarget {
           padding-top: 35px;
         }
 
-        .new-tweet-btn {
+        .enx-tweet-target\\:new-tweet-btn {
           background-color: transparent;
           border: none;
           padding: 0;
@@ -129,11 +172,13 @@ export default class ENXTweetTarget {
     );
 
     const tweetArea = document.querySelector(".en__tweet");
-    const newTweetBtn = `<button class="new-tweet-btn" type="button"><svg class="new-tweet-svg" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg></button>`;
+    const newTweetBtn = `<button class="enx-tweet-target:new-tweet-btn" type="button"><svg fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path></svg></button>`;
     tweetArea.insertAdjacentHTML("beforeend", newTweetBtn);
 
-    const newBtnEl = document.querySelector(".en__tweet > .new-tweet-btn");
-    const svg = document.querySelector(".en__tweet .new-tweet-svg");
+    const newBtnEl = document.querySelector(
+      ".en__tweet > [class*='enx-tweet-target:new-tweet-btn']"
+    );
+    const svg = newBtnEl.querySelector("svg");
 
     newBtnEl.addEventListener("click", () => {
       svg.classList.add("spin");
@@ -147,5 +192,13 @@ export default class ENXTweetTarget {
       this.tweetTextarea.value = this.tweets[this.currentTweet];
       this.currentTweet++;
     });
+  }
+
+  shouldRun() {
+    return !!document.querySelector("[class*='enx-tweet-target']");
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxTweetTarget") !== false;
   }
 }

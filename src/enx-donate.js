@@ -6,6 +6,8 @@ import { getCurrency, getEnPageLocale } from "./helpers";
 
 export default class ENXDonate {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.removeEmptyDecimalFromTotalAmountSpans();
     this.addCurrencyToDonationOther();
   }
@@ -36,5 +38,9 @@ export default class ENXDonate {
     document
       .querySelector(".en__field--donationAmt .en__field__item--other")
       ?.classList.add("amount-currency--" + getCurrency());
+  }
+
+  isEnabled() {
+    return ENX.getConfigValue("enxDonate") !== false;
   }
 }

@@ -12,14 +12,16 @@ import {
 
 export default class ENXModel {
   constructor() {
+    if (!this.isEnabled()) return;
+
     this.bindTargets = [...getElementsOfComponent("model")];
-    if (this.shouldRun()) {
+    if (this.bindTargets.length > 0) {
       this.run();
     }
   }
 
-  shouldRun() {
-    return this.bindTargets && this.bindTargets.length > 0;
+  isEnabled() {
+    return ENX.getConfigValue("enxModel") !== false;
   }
 
   run() {
