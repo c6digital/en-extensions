@@ -49,7 +49,7 @@ export function getENValidators() {
 
 export function getVisibleValidators() {
   return getENValidators().filter((x) => {
-    return !!document.querySelector(".enx-multistep-active .en__field--" + x.field);
+    return !!document.querySelector("[class*='enx-multistep:active'] .en__field--" + x.field);
   });
 }
 

@@ -79,7 +79,7 @@
   }
   function getVisibleValidators() {
     return getENValidators().filter((x2) => {
-      return !!document.querySelector(".enx-multistep-active .en__field--" + x2.field);
+      return !!document.querySelector("[class*='enx-multistep:active'] .en__field--" + x2.field);
     });
   }
   function validateVisibleFields() {
@@ -450,7 +450,7 @@
       this.resetTabs();
       this.onUrlHit();
       this.onBackButton();
-      this.onClick();
+      this.addButtonEventListeners();
     }
     isEnabled() {
       return ENX.getConfigValue("enxMultiStepForm") !== false;
@@ -501,41 +501,42 @@
         }
       };
     }
-    onClick() {
+    addButtonEventListeners() {
       const multistepButtons = getElementsWithComponentAttribute("multistep", "destination");
       multistepButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const destination = getComponentAttribute(button, "multistep", "destination");
-          const destinationIndex = this.multistepTabs.indexOf(destination);
-          const validate = !getComponentAttribute(button, "multistep", "no-validate") && this.currentStep < destinationIndex;
-          if (this.currentStep === destinationIndex || validate && destinationIndex > this.currentStep + 1)
-            return;
-          if (validate && !validateVisibleFields()) {
-            window.dispatchEvent(
-              new CustomEvent("enx-multistep:error", {
-                detail: this.multistepTabs[this.currentStep].className
-              })
-            );
-            return;
-          }
-          this.changeStep(getFirstElementWithComponentAttribute("multistep", "name", destination));
-          this.log("App", 'Show "' + destination + '"');
-          window.dispatchEvent(
-            new CustomEvent("enx-multistep:page-view", {
-              detail: [
-                {
-                  destination,
-                  current: this.multistepTabs[this.currentStep]
-                }
-              ]
-            })
-          );
-          this.setStep(destination);
-          if (destination) {
-            this.pushState(destination);
-          }
-        });
+        button.addEventListener("click", this.onButtonClick.bind(this));
       });
+    }
+    onButtonClick(event) {
+      const destination = getComponentAttribute(event.target, "multistep", "destination");
+      const destinationIndex = this.multistepTabs.indexOf(destination);
+      const validate = !getComponentAttribute(event.target, "multistep", "no-validate") && this.currentStep < destinationIndex;
+      if (this.currentStep === destinationIndex || validate && destinationIndex > this.currentStep + 1)
+        return;
+      if (validate && !validateVisibleFields()) {
+        window.dispatchEvent(
+          new CustomEvent("enx-multistep:error", {
+            detail: this.multistepTabs[this.currentStep].className
+          })
+        );
+        return;
+      }
+      this.changeStep(getFirstElementWithComponentAttribute("multistep", "name", destination));
+      this.log("App", 'Show "' + destination + '"');
+      window.dispatchEvent(
+        new CustomEvent("enx-multistep:page-view", {
+          detail: [
+            {
+              destination,
+              current: this.multistepTabs[this.currentStep]
+            }
+          ]
+        })
+      );
+      this.setStep(destination);
+      if (destination) {
+        this.pushState(destination);
+      }
     }
     changeStep(step) {
       this.hideAndShow(this.multistepTabs[this.currentStep], step);
