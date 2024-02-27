@@ -70,7 +70,7 @@ Here is an example of how to initialise ENX with a few configuration options. Al
 ```html
 <script>
   new ENX({
-     proxies: [
+     enxProxyFields: [
        {
          source: 'transaction.recurrpay', 
          target: 'supporter.NOT_TAGGED_17'
@@ -96,6 +96,24 @@ It is also possible to customise configuration options per page by defining a `w
 You can always view the activate config on a page by inspecting the `window.ENXConfig` variable in the console.
 
 ## Components
+
+Any component can be disabled by passing `false` to its configuration option in the `ENX` constructor or `window.ENXPageConfig`.
+
+For example, to disable the ENXProxyFields component, you would use the following configuration:
+
+```javascript
+new ENX({
+  enxProxyFields: false
+});
+```
+
+Or
+
+```javascript
+window.ENXPageConfig = {
+  enxProxyFields: false
+};
+```
 
 ### ENX Cloak
 
@@ -187,10 +205,12 @@ This class binds the value of a field to to another field.
 To use in, pass in an array of objects with the following structure via the ENX constructor or `window.ENXPageConfig`.
 
 ```javascript
-proxies: [{
-  source: 'transaction.recurrpay', 
-  target: 'supporter.NOT_TAGGED_17'
-}]
+enxProxyFields: [
+  {
+    source: 'transaction.recurrpay',
+    target: 'supporter.NOT_TAGGED_17'
+  },
+],
 ```
 
 It's also possible to create these without adding code by setting your target field's label to `enx-proxy[source=sourceFieldName]` e.g. `enx-proxy[source=transaction.recurrpay]`

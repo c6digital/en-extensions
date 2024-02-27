@@ -14,10 +14,15 @@
 import { getENFieldValue, log, setENFieldValue } from "./helpers";
 
 export default class ENXProxyFields {
+  /**
+   * @param {Array|Boolean} proxies
+   */
   constructor(proxies = []) {
     if (!this.isEnabled()) return;
 
-    this.proxies = [...proxies, ...this.getProxyFieldsFromLabels()];
+    this.configProxies = proxies instanceof Array ? proxies : [];
+
+    this.proxies = [...this.configProxies, ...this.getProxyFieldsFromLabels()];
 
     if (this.proxies.length > 0) {
       this.activateProxyFields();

@@ -417,10 +417,14 @@
 
   // src/enx-proxy-fields.js
   var ENXProxyFields = class {
+    /**
+     * @param {Array|Boolean} proxies
+     */
     constructor(proxies = []) {
       if (!this.isEnabled())
         return;
-      this.proxies = [...proxies, ...this.getProxyFieldsFromLabels()];
+      this.configProxies = proxies instanceof Array ? proxies : [];
+      this.proxies = [...this.configProxies, ...this.getProxyFieldsFromLabels()];
       if (this.proxies.length > 0) {
         this.activateProxyFields();
       }
@@ -1769,7 +1773,7 @@
         this.enxHelpers = helpers_exports;
         this.enxHelpers.transformEnxClassesToDataAttributes();
         this.enxModel = new ENXModel();
-        this.enxProxyFields = new ENXProxyFields(this.config.proxies);
+        this.enxProxyFields = new ENXProxyFields(this.config.enxProxyFields);
         this.enxMultiStepForm = new ENXMultiStepForm();
         this.enxShow = new ENXShow();
         this.enxShare = new ENXShare();
