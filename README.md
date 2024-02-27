@@ -101,9 +101,9 @@ You can always view the activate config on a page by inspecting the `window.ENXC
 
 Add `.enx-cloak` to any element you want to be hidden until ENX has finished loading.
 
-## ENX Convert
+### ENX Convert
 
-### Handling conversions
+#### Handling conversions
 
 This component will dispatch Events when it believes a conversion has occurred. The following events will be dispatched:
 
@@ -120,7 +120,7 @@ window.addEventListener("synthetic-en:conversion", () => {
 });
 ```
 
-### Overriding default conversion detection
+#### Overriding default conversion detection
 
 To prevent the library dispatching a conversion event on a specific page, add a code block with the following content to the subpage where the conversion would happen:
 
@@ -221,7 +221,7 @@ The format is: `enx-show[field=fieldName][value=fieldValue]`.
 
 For example, an element with the class name `enx-show[field=transaction.recurrpay][value=Y]` will only be visible when the value of the field `transaction.recurrpay` is `Y`. If the field is a checkbox or radio button, it will be visible when the input of the group with this value is checked.
 
-## ENX Text
+### ENX Text
 Similar to ENX HTML, but for text content only.
 
 Copy the text content of an element to another element. e.g. an element with the class name `enx-text[source=contact--first-name]` will copy the text content of the element with the class `contact--first-name` to the element with the class name `enx-text[source=contact--first-name]`.
