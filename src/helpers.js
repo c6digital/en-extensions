@@ -388,3 +388,58 @@ export function getFirstElementWithComponentAttribute(
 ) {
   return getElementsWithComponentAttribute(componentName, attributeName, attributeValue)[0];
 }
+
+export async function getCampaignData(
+  campaignId = false,
+  apiService = "EaDataCapture",
+  token = ""
+) {
+  if (!campaignId) {
+    if (!window.pageJson) {
+      throw new Error("No campaign ID provided and no pageJson found");
+    }
+    campaignId = window.pageJson.campaignId;
+  }
+
+  return await fetchJSONP(
+    `https://${getDataCenter()}.engagingnetworks.app/ea-dataservice/data.service?service=${apiService}&campaignId=${campaignId}&token=${token}&contentType=json`
+  );
+}
+
+export function getClientID() {
+  if (!window.pageJson) return 0;
+  return window.pageJson.clientId;
+}
+
+export function getDataCenter() {
+  return getClientID() >= 10000 ? "us" : "ca";
+}
+
+export async function fetchJSONP(url) {
+  return new Promise((resolve, reject) => {
+    let script = document.createElement("script");
+    // Generate random callback name
+    let name = "_enx_jsonp_" + Math.floor(Math.random() * 10000);
+
+    if (url.match(/\?/)) {
+      url += "&callback=" + name;
+    } else {
+      url += "?callback=" + name;
+    }
+
+    window[name] = (json) => {
+      resolve(json);
+      script.remove();
+      delete window[name];
+    };
+
+    script.onerror = (error) => {
+      reject(error);
+      script.remove();
+      delete window[name];
+    };
+
+    script.src = url;
+    document.body.appendChild(script);
+  });
+}

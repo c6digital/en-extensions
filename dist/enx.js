@@ -12,10 +12,14 @@
     disableSubmitButton: () => disableSubmitButton,
     displayDonationAmt: () => displayDonationAmt,
     enableSubmitButton: () => enableSubmitButton,
+    fetchJSONP: () => fetchJSONP,
+    getCampaignData: () => getCampaignData,
+    getClientID: () => getClientID,
     getComponentAttribute: () => getComponentAttribute,
     getComponentAttributes: () => getComponentAttributes,
     getCurrency: () => getCurrency,
     getCurrencySymbol: () => getCurrencySymbol,
+    getDataCenter: () => getDataCenter,
     getDataFromStorage: () => getDataFromStorage,
     getENFieldValue: () => getENFieldValue,
     getENSupporterData: () => getENSupporterData,
@@ -293,6 +297,48 @@
   function getFirstElementWithComponentAttribute(componentName, attributeName, attributeValue = null) {
     return getElementsWithComponentAttribute(componentName, attributeName, attributeValue)[0];
   }
+  async function getCampaignData(campaignId = false, apiService = "EaDataCapture", token = "") {
+    if (!campaignId) {
+      if (!window.pageJson) {
+        throw new Error("No campaign ID provided and no pageJson found");
+      }
+      campaignId = window.pageJson.campaignId;
+    }
+    return await fetchJSONP(
+      `https://${getDataCenter()}.engagingnetworks.app/ea-dataservice/data.service?service=${apiService}&campaignId=${campaignId}&token=${token}&contentType=json`
+    );
+  }
+  function getClientID() {
+    if (!window.pageJson)
+      return 0;
+    return window.pageJson.clientId;
+  }
+  function getDataCenter() {
+    return getClientID() >= 1e4 ? "us" : "ca";
+  }
+  async function fetchJSONP(url) {
+    return new Promise((resolve, reject) => {
+      let script = document.createElement("script");
+      let name = "_enx_jsonp_" + Math.floor(Math.random() * 1e4);
+      if (url.match(/\?/)) {
+        url += "&callback=" + name;
+      } else {
+        url += "?callback=" + name;
+      }
+      window[name] = (json) => {
+        resolve(json);
+        script.remove();
+        delete window[name];
+      };
+      script.onerror = (error) => {
+        reject(error);
+        script.remove();
+        delete window[name];
+      };
+      script.src = url;
+      document.body.appendChild(script);
+    });
+  }
 
   // src/default-config.js
   var defaultConfig = {
@@ -314,6 +360,15 @@
       removeErrorsOnInput: true,
       sortCodeField: "supporter.bankRoutingNumber",
       accountNumberField: "supporter.bankAccountNumber"
+    },
+    enxWidget: {
+      type: "petition",
+      // petition, fundraising
+      metric: "participatingSupporters",
+      // totalAmountDonated, totalNumberOfDonations
+      offsetCount: 0,
+      hiddenUntilCount: 0,
+      token: "ad33adbe-154d-4ac9-93c7-d60796a39b98"
     },
     beforeInit: () => {
     },
@@ -1617,6 +1672,84 @@
     }
   };
 
+  // src/enx-widget.js
+  var ENXWidget = class {
+    constructor(config) {
+      if (!this.isEnabled())
+        return;
+      this.config = typeof config === "object" ? config : {};
+      this.setupEnProgressBarWidget();
+    }
+    isEnabled() {
+      return ENX.getConfigValue("enxWidget") !== false;
+    }
+    async setupEnProgressBarWidget() {
+      const thermometer = document.querySelector(".enWidget.enWidget--progressBar");
+      const counterText = document.querySelector(".signature-counter");
+      if (!thermometer && !counterText) {
+        log("ENXWidget: No progress bar or counter text found, skipping widget setup");
+        return;
+      }
+      thermometer?.classList.add("enx-hidden");
+      counterText?.classList.add("enx-hidden");
+      const campaignId = window.pageJson && window.pageJson.campaignId;
+      const apiService = this.config.type === "petition" ? "EaDataCapture" : "FundraisingSummary";
+      const responseData = await getCampaignData(campaignId, apiService, this.config.token);
+      if (!responseData || !responseData.rows) {
+        log("ENXWidget: No API response found, skipping widget setup");
+        return;
+      }
+      const responseCount = responseData.rows[0].columns.find(
+        (column) => column.name === this.config.metric
+      ).value;
+      const totalCount = parseInt(responseCount || 0) + this.config.offsetCount;
+      if (!totalCount) {
+        log("ENXWidget: No total count found in API response, skipping widget setup");
+        return;
+      }
+      if (this.config.hiddenUntilCount && this.config.hiddenUntilCount > totalCount) {
+        log(
+          `ENXWidget: Total count ${totalCount} is less than hiddenUntilCount, skipping widget setup`
+        );
+        return;
+      }
+      const target = this.getTarget(totalCount);
+      const remaining = target - totalCount;
+      const percent = (totalCount * 100 / target).toFixed(0) + "%";
+      if (counterText) {
+        counterText.innerHTML = counterText.innerHTML.replace("{signature.remaining}", remaining.toLocaleString()).replace("{signature.percent}", percent).replace("{signature.count}", totalCount.toLocaleString()).replace("{signature.target}", target.toLocaleString());
+        counterText.classList.remove("enx-hidden");
+      }
+      if (thermometer) {
+        const thermometerFill = thermometer.querySelector(".enWidget__fill");
+        if (thermometerFill) {
+          thermometerFill.style.width = "0%";
+          thermometerFill.style.height = "100%";
+          thermometer.classList.remove("enx-hidden");
+          thermometerFill.style.width = percent;
+          thermometer.classList.remove("enx-hidden");
+        }
+      }
+      log(
+        `ENXWidget: ${totalCount} signatures, ${target} target, ${remaining} remaining, ${percent} complete`
+      );
+    }
+    getTarget(signatureCount) {
+      const signatureNumber = parseInt(signatureCount) * 1.05;
+      let target = Math.ceil(signatureNumber / 5e5) * 5e5;
+      if (signatureNumber < 15e3) {
+        target = Math.ceil(signatureNumber / 5e3) * 5e3;
+      } else if (signatureNumber < 5e4) {
+        target = Math.ceil(signatureNumber / 1e4) * 1e4;
+      } else if (signatureNumber < 2e5) {
+        target = Math.ceil(signatureNumber / 5e4) * 5e4;
+      } else if (signatureNumber < 5e5) {
+        target = Math.ceil(signatureNumber / 1e5) * 1e5;
+      }
+      return target;
+    }
+  };
+
   // src/enx.js
   var ENX2 = class {
     constructor(config = {}) {
@@ -1648,6 +1781,7 @@
         this.enxDonate = new ENXDonate();
         this.enxValidate = new ENXValidate(this.config.validate);
         this.enxConvert = new ENXConvert();
+        this.enxWidget = new ENXWidget(this.config.enxWidget);
         this.config.beforeCloakRemoval();
         this.cloak = new ENXCloak();
         this.config.afterInit();

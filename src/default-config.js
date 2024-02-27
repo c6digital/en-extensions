@@ -18,6 +18,13 @@ export const defaultConfig = {
     sortCodeField: "supporter.bankRoutingNumber",
     accountNumberField: "supporter.bankAccountNumber",
   },
+  enxWidget: {
+    type: "petition", // petition, fundraising
+    metric: "participatingSupporters", // totalAmountDonated, totalNumberOfDonations
+    offsetCount: 0,
+    hiddenUntilCount: 0,
+    token: "ad33adbe-154d-4ac9-93c7-d60796a39b98",
+  },
   beforeInit: () => {},
   beforeCloakRemoval: () => {},
   afterInit: () => {},

@@ -266,3 +266,42 @@ This component will format various fields as the user types and remove error mes
     accountNumberField: "supporter.bankAccountNumber",
 }
 ```
+
+### ENX Widget
+
+Add data to your page from the data services API.
+
+You can customise the enxWidget config by adding it to your per page ENX config, like this:
+
+```javascript
+window.ENXPageConfig = {
+  enxWidget: {
+    type: "petition", // other options: petition, fundraising
+    metric: "participatingSupporters", // other options: totalAmountDonated, totalNumberOfDonations
+    offsetCount: 0,
+    hiddenUntilCount: 0,
+    token: "your-token",
+  }
+};
+```
+
+Then, on your page, you can add a text block with the class `signature-counter` to display the data. The following replacements are supported:
+
+- {signature.remaining} - the remaining number of signatures needed to reach the target
+- {signature.percent} - the percentage of the target reached
+- {signature.count} - the current number of signatures
+- {signature.target} - the target number of signatures
+
+Finally, add a custom code block with the following content where you want your widget to display:
+
+```html
+<div class="enWidget enWidget--progressBar">
+    <div class="enWidget__display">
+        <div class="enWidget__bar">
+            <div class="enWidget__progress">
+                <div class="enWidget__fill" style="width: 50%; height: 100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+```

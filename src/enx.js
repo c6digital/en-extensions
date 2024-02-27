@@ -14,6 +14,7 @@ import ENXTweetTarget from "./enx-tweet-target";
 import ENXDonate from "./enx-donate";
 import ENXValidate from "./enx-validate";
 import ENXConvert from "./enx-convert";
+import ENXWidget from "./enx-widget";
 
 export default class ENX {
   constructor(config = {}) {
@@ -49,6 +50,7 @@ export default class ENX {
       this.enxDonate = new ENXDonate();
       this.enxValidate = new ENXValidate(this.config.validate);
       this.enxConvert = new ENXConvert();
+      this.enxWidget = new ENXWidget(this.config.enxWidget);
 
       // These must come last
       this.config.beforeCloakRemoval();
