@@ -3,7 +3,8 @@
 @import "enx-read-more-mobile.css";
 @import "enx-tweet-target.css";
 
-body:not(#en__pagebuilder) .enx-cloak {
+body:not(#en__pagebuilder) .enx-cloak,
+body:not(#en__pagebuilder).enx-cloak {
   display: none !important;
 }
 

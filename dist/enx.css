@@ -274,7 +274,8 @@ body:not(#en__pagebuilder) .enx-tweet-target\:custom-tweets {
 }
 
 /* src/styles/index.css */
-body:not(#en__pagebuilder) .enx-cloak {
+body:not(#en__pagebuilder) .enx-cloak,
+body:not(#en__pagebuilder).enx-cloak {
   display: none !important;
 }
 body:not(#en__pagebuilder) .enx-hidden {
