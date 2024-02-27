@@ -29,7 +29,7 @@ export default class ENXReadMoreMobile {
         `<a style="text-decoration: none; cursor: pointer;" class="enx-read-more:toggle">
           Read more
           <svg
-            class="rm-icon-normal ml-2"
+            class="rm-icon-normal"
             width="15"
             height="15"
             xmlns="http://www.w3.org/2000/svg"
@@ -45,7 +45,7 @@ export default class ENXReadMoreMobile {
             />
           </svg>
           <svg
-            class="rm-icon-expanded ml-2"
+            class="rm-icon-expanded"
             width="15"
             height="15"
             xmlns="http://www.w3.org/2000/svg"

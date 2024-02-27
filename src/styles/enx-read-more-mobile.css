@@ -17,3 +17,9 @@
     display: none;
   }
 }
+
+.enx-read-more\:toggle svg {
+  display: inline;
+  width: 20px;
+  height: 20px;
+}
